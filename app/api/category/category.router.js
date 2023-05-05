@@ -1,16 +1,16 @@
 const express = require("express")
 const router = express.Router();
-const authorService = require("./author.service");
+const categoryService = require("./category.service");
 const multer = require('../../core/middlewares/multer');
 
 
 /**
  * @openapi
- * /cms/author/list-author:
+ * /cms/category/list-category:
  *   get:
  *     tags:
- *      - "Author"
- *     summary: Danh sách author
+ *      - "Category"
+ *     summary: Danh sách category
  *     parameters:
  *      - in: query
  *        name: "page"
@@ -32,18 +32,18 @@ const multer = require('../../core/middlewares/multer');
  *     security:
  *      - Bearer: []
  */
-router.get('/list-author', authorService.getAllAuthor)
+router.get('/list-category', categoryService.getAllCategory)
 
 /**
  * @openapi
- * /cms/author/{authorId}:
+ * /cms/category/{categoryId}:
  *   get:
  *     tags:
- *      - "Author"
- *     summary: Thông tin chi tiết author
+ *      - "Category"
+ *     summary: Thông tin chi tiết category
  *     parameters:
  *      - in: "path"
- *        name: "authorId"
+ *        name: "categoryId"
  *        type: "number"
  *     responses:
  *       200:
@@ -53,20 +53,20 @@ router.get('/list-author', authorService.getAllAuthor)
  *     security:
  *      - Bearer: []
  */
-router.get('/:authorId',  authorService.getAuthorById)
+router.get('/:categoryId', categoryService.getCategoryById)
 
 
 /**
  * @openapi
- * /cms/author/create-author:
+ * /cms/category/create-category:
  *   post:
  *     tags:
- *      - "Author"
- *     summary: tạo mới author
+ *      - "Category"
+ *     summary: tạo mới category
  *     parameters:
  *      - in: "body"
  *        name: "body"
- *        description: "Thông tin thêm Author"
+ *        description: "Thông tin thêm category"
  *        schema:
  *          type: "object"
  *          properties:
@@ -81,22 +81,9 @@ router.get('/:authorId',  authorService.getAuthorById)
  *                      type: "string"
  *                      description: "cloudId"
  *                      example: "ImageUserWeb/qkgmfxmo6yzmloma97we"
- *            fullName:
+ *            title:
  *              type: "string"
  *              description: "Tên người dùng"
- *            description:
- *              type: "string"
- *              description: "giá của sách"
- *            birthday:
- *              type: "string"
- *              description: "birthday"
- *              example: "2002-03-06"
- *            address:
- *              type: "string"
- *              description: "địa chỉ"
- *            gender:
- *              type: "string"
- *              description: "giới tính"
  *     responses:
  *       200:
  *         description: "OK"
@@ -105,15 +92,14 @@ router.get('/:authorId',  authorService.getAuthorById)
  *     security:
  *      - Bearer: []
  */
-router.post('/create-author', authorService.createAuthor)
-
+router.post('/create-category', categoryService.createCategory)
 /**
  * @openapi
- * /cms/author/upImage:
+ * /cms/category/upImage:
  *   post:
  *     tags:
- *      - "Author"
- *     summary: upload image author
+ *      - "Category"
+ *     summary: upload image category
  *     consumes:
  *      - "multipart/form-data"
  *     produces:
@@ -133,22 +119,22 @@ router.post('/create-author', authorService.createAuthor)
  *     security:
  *      - Bearer: []
  */
-router.post("/upImage",  multer.single('files'), authorService.uploadImageCms)
+router.post("/upImage", multer.single('files'), categoryService.uploadImageCms)
 
 /**
  * @openapi
- * /cms/author/edit-author/{authorId}:
+ * /cms/category/edit-category/{categoryId}:
  *   put:
  *     tags:
- *      - "Author"
- *     summary: tạo mới author
+ *      - "Category"
+ *     summary: tạo mới category
  *     parameters:
  *      - in: "path"
- *        name: "authorId"
+ *        name: "categoryId"
  *        type: "number"
  *      - in: "body"
  *        name: "body"
- *        description: "Thông tin sửa Author"
+ *        description: "Thông tin thêm category"
  *        schema:
  *          type: "object"
  *          properties:
@@ -163,22 +149,9 @@ router.post("/upImage",  multer.single('files'), authorService.uploadImageCms)
  *                      type: "string"
  *                      description: "cloudId"
  *                      example: "ImageUserWeb/qkgmfxmo6yzmloma97we"
- *            fullName:
+ *            title:
  *              type: "string"
  *              description: "Tên người dùng"
- *            description:
- *              type: "string"
- *              description: "giá của sách"
- *            birthday:
- *              type: "string"
- *              description: "birthday"
- *              example: "2002-03-06"
- *            address:
- *              type: "string"
- *              description: "địa chỉ"
- *            gender:
- *              type: "string"
- *              description: "giới tính"
  *     responses:
  *       200:
  *         description: "OK"
@@ -187,18 +160,18 @@ router.post("/upImage",  multer.single('files'), authorService.uploadImageCms)
  *     security:
  *      - Bearer: []
  */
-router.put('/edit-author/:authorId', authorService.editAuthor)
+router.put('/edit-category/:categoryId', categoryService.editCategory)
 
 /**
  * @openapi
- * /cms/author/delete-author/{authorId}:
+ * /cms/category/delete-category/{categoryId}:
  *   delete:
  *     tags:
- *      - "Author"
- *     summary: xóa author
+ *      - "Category"
+ *     summary: xóa category
  *     parameters:
  *      - in: "path"
- *        name: "authorId"
+ *        name: "categoryId"
  *        type: "string"
  *     responses:
  *       200:
@@ -208,7 +181,7 @@ router.put('/edit-author/:authorId', authorService.editAuthor)
  *     security:
  *      - Bearer: []
  */
-router.delete("/delete-author/:authorId", authorService.deleteAuthor)
+router.delete("/delete-category/:categoryId", categoryService.deleteCategory)
 
 /**
  * Landing-page
@@ -216,24 +189,16 @@ router.delete("/delete-author/:authorId", authorService.deleteAuthor)
 
 /**
  * @openapi
- * /landing-page/author/list-author:
+ * /landing-page/category/user/list-category-user:
  *   get:
  *     tags:
- *      - "Author"
- *     summary: Danh sách author
+ *      - "Category"
+ *     summary: Danh sách category
  *     parameters:
- *      - in: query
- *        name: "page"
- *        description: "page"
- *        type: "number"
- *      - in: query
- *        name: "size"
- *        description: "size"
- *        type: "number"
  *      - in: "query"
  *        name: "freeWord"
  *        type: "string"
- *        description: "tìm kiếm theo tên tác giả"
+ *        description: "tìm kiếm theo tên danh mục"
  *     responses:
  *       200:
  *         description: "OK"
@@ -242,17 +207,18 @@ router.delete("/delete-author/:authorId", authorService.deleteAuthor)
  *     security:
  *      - Bearer: []
  */
-router.get('/list-author', authorService.getAllAuthorForLP)
+router.get('/user/list-category-user', categoryService.getAllCategoryForLP)
+
 /**
  * @openapi
- * /landing-page/author/{authorId}:
+ * /landing-page/category/user/{categoryId}:
  *   get:
  *     tags:
- *      - "Author"
- *     summary: Thông tin chi tiết author
+ *      - "Category"
+ *     summary: Thông tin chi tiết category
  *     parameters:
  *      - in: "path"
- *        name: "authorId"
+ *        name: "categoryId"
  *        type: "number"
  *     responses:
  *       200:
@@ -262,5 +228,6 @@ router.get('/list-author', authorService.getAllAuthorForLP)
  *     security:
  *      - Bearer: []
  */
-router.get('/:authorId',  authorService.getAuthorForLPById)
+router.get('/user/:categoryId', categoryService.getCategoryForLPById)
+
 module.exports = router;

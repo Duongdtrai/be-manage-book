@@ -1,8 +1,11 @@
 const status = require("./book.response-status");
 const cloudinaryV2 = require("../../core/cloudinary/cloudinary.service")
+const Sequelize = require("sequelize")
+const Op = Sequelize.Op;
+
 module.exports = {
     getAllBooksLP: async (req, res) => {
-        let { page, size } = req.query;
+        let { page, size, category, author, freeWord } = req.query;
         let offset = 0;
         let limit = 10;
         if (page && size) {
@@ -15,32 +18,70 @@ module.exports = {
             const operator = {
                 limit,
                 offset,
-                distinct: true,
                 attributes: [
                     "id",
                     "title",
                     "description",
                     "price",
-                    "author",
                     "numberPage",
-                    "category",
                     "releaseDate",
                     "createdAt",
                     "updatedAt"
                 ],
                 include: [
                     {
-                        model: appman.db.BookAvatars,
-                        as: 'avatar',
+                        model: appman.db.Avatars,
+                        as: 'avatar_book',
                         attributes: ["image"],
                     },
                     {
                         model: appman.db.BookComments,
-                        as: 'comment',
-                        attributes: ["id", "comment"],
+                        as: 'commentUser',
+                        attributes: [
+                            "id",
+                            "comment",
+                            "star",
+                        ],
+                        include: [
+                            {
+                                model: appman.db.Users,
+                                as: 'user',
+                                attributes: [
+                                    "username",
+                                    "email",
+                                ],
+                                include: [{
+                                    model: appman.db.Avatars,
+                                    as: 'avatar_user',
+                                    attributes: ["image"]
+                                }]
+
+                            }
+                        ],
+                        order: [["createdAt", "DESC"]],
+                    },
+                    {
+                        model: appman.db.Authors,
+                        as: "author_book",
+                    },
+                    {
+                        model: appman.db.Categories,
+                        as: "category_book",
                     }
                 ],
+                where: {},
                 order: [["createdAt", "DESC"]],
+            }
+            if (category) {
+                operator.where.category = category
+            }
+            if (author) {
+                operator.where.author = category
+            }
+            if (freeWord) {
+                operator.where.freeWord = {
+                    [Op.like]: "%" + freeWord + "%",
+                }
             }
             const listBooks = await appman.db.Books.findAndCountAll(operator)
             return appman.response.apiSuccess(res, listBooks);
@@ -50,7 +91,7 @@ module.exports = {
     },
 
     getAllBooks: async (req, res) => {
-        let { page, size } = req.query;
+        let { page, size, freeWord } = req.query;
         let offset = 0;
         let limit = 10;
         if (page && size) {
@@ -69,35 +110,84 @@ module.exports = {
                     "title",
                     "description",
                     "price",
-                    "author",
                     "numberPage",
-                    "category",
                     "releaseDate",
                     "createdAt",
                     "updatedAt"
                 ],
                 include: [
                     {
-                        model: appman.db.BookAvatars,
-                        as: 'avatar',
+                        model: appman.db.Avatars,
+                        as: 'avatar_book',
                         attributes: ["image"],
                     },
                     {
                         model: appman.db.BookComments,
-                        as: 'comment',
-                        attributes: ["id", "comment"],
+                        as: 'commentUser',
+                        attributes: [
+                            "id",
+                            "comment",
+                            "star",
+                        ],
+                        include: [
+                            {
+                                model: appman.db.Users,
+                                as: 'user',
+                                attributes: [
+                                    "username",
+                                    "email",
+                                ],
+                                include: [{
+                                    model: appman.db.Avatars,
+                                    as: 'avatar_user',
+                                    attributes: ["image"]
+                                }]
+
+                            }
+                        ],
+                        order: [["createdAt", "DESC"]],
                     },
                     {
-                        model: appman.db.Users,
-                        as: 'starsUsers',
-                        attributes: ["id"],
-                        through: {
-                            model: appman.db.Stars,
-                            attributes: []
-                        }
+                        model: appman.db.Authors,
+                        as: "author_book",
+                        attributes: [
+                            "id",
+                            "fullName",
+                            "description",
+                            "birthday",
+                            "address",
+                            "gender"
+                        ],
+                        include: [
+                            {
+                                model: appman.db.Avatars,
+                                as: 'avatar',
+                                attributes: ["image"],
+                            }
+                        ]
+                    },
+                    {
+                        model: appman.db.Categories,
+                        as: "category_book",
+                        attributes: ["title"],
+                        include: [
+                            {
+                                model: appman.db.Avatars,
+                                as: 'avatar_category',
+                                attributes: ["image"],
+                            }
+                        ]
                     }
                 ],
+                where: {},
                 order: [["createdAt", "DESC"]],
+            }
+            if (freeWord) {
+                operator.where = {
+                    title: {
+                        [Op.like]: "%" + freeWord + "%",
+                    }
+                }
             }
             const listBooks = await appman.db.Books.findAndCountAll(operator)
             return appman.response.apiSuccess(res, listBooks);
@@ -108,16 +198,13 @@ module.exports = {
     getBookDetails: async (req, res) => {
         try {
             const { bookId } = req.params;
-            console.log("bookId", req.params.bookId);
             const bookExist = await appman.db.Books.findOne({
                 attributes: [
                     "id",
                     "title",
                     "description",
                     "price",
-                    "author",
                     "numberPage",
-                    "category",
                     "releaseDate",
                     "createdAt",
                     "updatedAt"
@@ -127,30 +214,66 @@ module.exports = {
                 },
                 include: [
                     {
-                        model: appman.db.BookAvatars,
-                        as: 'avatar',
-                        attributes: ["id", "avatar"],
+                        model: appman.db.Avatars,
+                        as: 'avatar_book',
+                        attributes: ["image", "cloudId"],
                     },
                     {
                         model: appman.db.BookComments,
-                        as: 'comment',
-                        attributes: ["id", "comment"],
+                        as: 'commentUser',
+                        attributes: [
+                            "id",
+                            "comment",
+                            "star",
+                        ],
+                        include: [
+                            {
+                                model: appman.db.Users,
+                                as: 'user',
+                                attributes: [
+                                    "username",
+                                    "email",
+                                ],
+                                include: [{
+                                    model: appman.db.Avatars,
+                                    as: 'avatar_user',
+                                    attributes: ["image"]
+                                }]
+
+                            }
+                        ],
+                        order: [["createdAt", "DESC"]],
                     },
                     {
-                        model: appman.db.Users,
-                        as: 'starsUsers',
-                        attributes: ["id"],
-                        through: {
-                            model: appman.db.Stars,
-                            attributes: []
-                        }
+                        model: appman.db.Authors,
+                        as: "author_book",
+                        attributes: ["id", "fullName", "description", "birthday", "address", "gender"],
+                        include: [
+                            {
+                                model: appman.db.Avatars,
+                                as: 'avatar',
+                                attributes: ["image"],
+                            }
+                        ]
+                    },
+                    {
+                        model: appman.db.Categories,
+                        as: "category_book",
+                        attributes: ["id", "title"],
+                        include: [
+                            {
+                                model: appman.db.Avatars,
+                                as: 'avatar_category',
+                                attributes: ["image"],
+                            }
+                        ]
                     }
-                ]
+                ],
             })
             if (!bookExist) {
                 return appman.response.resApiError(res, 403, status[400]);
             }
-            return appman.response.apiSuccess(res, book);
+            return appman.response.apiSuccess(res, bookExist);
         } catch (error) {
             return appman.response.systemError(res, error)
         }
@@ -159,17 +282,13 @@ module.exports = {
     getBookDetailsForLP: async (req, res) => {
         try {
             const { bookId } = req.params;
-
-            console.log("bookId", req.params.bookId);
             const bookExist = await appman.db.Books.findOne({
                 attributes: [
                     "id",
                     "title",
                     "description",
                     "price",
-                    "author",
                     "numberPage",
-                    "category",
                     "releaseDate",
                     "createdAt",
                     "updatedAt"
@@ -179,30 +298,66 @@ module.exports = {
                 },
                 include: [
                     {
-                        model: appman.db.BookAvatars,
-                        as: 'avatar',
-                        attributes: ["id", "avatar"],
+                        model: appman.db.Avatars,
+                        as: 'avatar_book',
+                        attributes: ["image"],
                     },
                     {
                         model: appman.db.BookComments,
-                        as: 'comment',
-                        attributes: ["id", "comment"],
+                        as: 'commentUser',
+                        attributes: [
+                            "id",
+                            "comment",
+                            "star",
+                        ],
+                        include: [
+                            {
+                                model: appman.db.Users,
+                                as: 'user',
+                                attributes: [
+                                    "username",
+                                    "email",
+                                ],
+                                include: [{
+                                    model: appman.db.Avatars,
+                                    as: 'avatar_user',
+                                    attributes: ["image"]
+                                }]
+
+                            }
+                        ],
+                        order: [["createdAt", "DESC"]],
                     },
                     {
-                        model: appman.db.Users,
-                        as: 'starsUsers',
-                        attributes: ["id"],
-                        through: {
-                            model: appman.db.Stars,
-                            attributes: []
-                        }
+                        model: appman.db.Authors,
+                        as: "author_book",
+                        attributes: ["id", "fullName", "description", "birthday", "address", "gender"],
+                        include: [
+                            {
+                                model: appman.db.Avatars,
+                                as: 'avatar',
+                                attributes: ["image"],
+                            }
+                        ]
+                    },
+                    {
+                        model: appman.db.Categories,
+                        as: "category_book",
+                        attributes: ["title"],
+                        include: [
+                            {
+                                model: appman.db.Avatars,
+                                as: 'avatar_category',
+                                attributes: ["image"],
+                            }
+                        ]
                     }
-                ]
+                ],
             })
             if (!bookExist) {
                 return appman.response.resApiError(res, 403, status[400]);
             }
-            return appman.response.apiSuccess(res, book);
+            return appman.response.apiSuccess(res, bookExist);
         } catch (error) {
             return appman.response.systemError(res, error)
         }
@@ -212,7 +367,7 @@ module.exports = {
         const transaction = await appman.db.sequelize.transaction()
         try {
             const {
-                avatar,
+                image,
                 title,
                 description,
                 price,
@@ -221,8 +376,34 @@ module.exports = {
                 category,
                 releaseDate
             } = req.body
-            console.log("1");
+            let imageCreate = null
+            if (image && image.image && image.cloudId) {
+                imageCreate = await appman.db.Avatars.create({
+                    image: image.image,
+                    cloudId: image.cloudId
+                }, {
+                    transaction
+                })
+            }
+            const authorExist = await appman.db.Authors.findOne({
+                where: {
+                    id: author
+                }
+            })
+            const categoryExist = await appman.db.Authors.findOne({
+                where: {
+                    id: category
+                }
+            })
+            if (!authorExist) {
+                throw new Error("Không tìm thấy author")
+            }
+            if (!categoryExist) {
+                throw new Error("Không tìm thấy category")
+            }
+            const imageIdCreate = imageCreate.id || null
             const book = await appman.db.Books.create({
+                imageId: imageIdCreate,
                 title,
                 description,
                 price,
@@ -233,18 +414,6 @@ module.exports = {
             }, {
                 transaction
             })
-            console.log("2");
-            if (avatar && avatar.length > 0) {
-                for (let i = 0; i < avatar.length; i++) {
-                    await appman.db.BookAvatars.create({
-                        bookId: book.id,
-                        image: avatar[i].image,
-                        cloudId: avatar[i].cloudId
-                    }, {
-                        transaction
-                    })
-                }
-            }
             await transaction.commit();
             return appman.response.apiSuccess(res, book);
         } catch (error) {
@@ -256,7 +425,7 @@ module.exports = {
         const transaction = await appman.db.sequelize.transaction()
         try {
             const {
-                avatar,
+                image,
                 title,
                 description,
                 price,
@@ -266,13 +435,47 @@ module.exports = {
                 releaseDate
             } = req.body
             const { bookId } = req.params
-            // console.log("req", req);
-            // console.log("bookId", bookId);
             const bookExist = await appman.db.Books.findOne({
-                where: { id: bookId}
+                where: { id: bookId }
             })
             if (bookExist) {
+                let newImage = null
+                if (image && image.image && image.cloudId) {
+                    if (bookExist.imageId) {
+                        await appman.db.Avatars.update({
+                            image: image.image,
+                            cloudId: image.cloudId
+                        }, {
+                            where: { id: bookExist.imageId },
+                            transaction
+                        })
+                    } else {
+                        newImage = await appman.db.Avatars.create({
+                            image: image.image,
+                            cloudId: image.cloudId
+                        }, {
+                            transaction
+                        })
+                    }
+                }
+                const authorExist = await appman.db.Authors.findOne({
+                    where: {
+                        id: author
+                    }
+                })
+                const categoryExist = await appman.db.Authors.findOne({
+                    where: {
+                        id: category
+                    }
+                })
+                if (!authorExist) {
+                    throw new Error("Không tìm thấy author")
+                }
+                if (!categoryExist) {
+                    throw new Error("Không tìm thấy category")
+                }
                 const book = await appman.db.Books.update({
+                    imageId: bookExist.imageId || newImage.id,
                     title,
                     description,
                     price,
@@ -286,42 +489,12 @@ module.exports = {
                     },
                     transaction
                 })
-                console.log("book", book);
-                if (avatar && avatar.length > 0) {
-                    for (let i = 0; i < avatar.length; i++) {
-                        const avatarExist = await appman.db.BookAvatars.findOne({
-                            where: {
-                                bookId
-                            }
-                        })
-                        if (!avatarExist) {
-                            await cloudinaryV2.uploader.destroy(avatarExist.cloudId)
-                            await appman.db.BookAvatars.update({
-                                image: avatar[i].image,
-                                cloudId: avatar[i].cloudId
-                            }, {
-                                where: {
-                                    bookId
-                                },
-                                transaction
-                            })
-                        }
-                        else {
-                            await appman.db.BookAvatars.create({
-                                bookId: bookId,
-                                image: avatar[i].image,
-                                cloudId: avatar[i].cloudId
-                            })
-                        }
-                    }
-                }
                 await transaction.commit();
                 return appman.response.apiSuccess(res, book);
             }
             else {
                 return appman.response.resApiError(res, 403, status[400]);
             }
-          
         } catch (error) {
             await transaction.rollback();
             return appman.response.systemError(res, error)
@@ -341,7 +514,7 @@ module.exports = {
             if (!bookExist) {
                 return appman.response.resApiError(res, 403, status[400]);
             }
-            const avatarExist = await appman.db.BookAvatars.findAll({
+            const avatarExist = await appman.db.Avatars.findOne({
                 where: {
                     bookId
                 }
@@ -355,17 +528,27 @@ module.exports = {
                 transaction
             })
             // delete avatar of book và xóa avatar ra khỏi cloudinary
-            if (avatarExist && avatarExist.length > 0) {
-                for (let i = 0; i < avatarExist.length; i++) {
-                    await appman.db.BookAvatars.destroy({
-                        where: {
-                            id: avatarExist[i].id
-                        }
-                    })
-                    await cloudinaryV2.uploader.destroy(avatarExist[i].cloudId)
-                }
+            if (avatarExist) {
+                await appman.db.Avatars.destroy({
+                    where: {
+                        id: bookExist.imageId
+                    }
+                })
+                await cloudinaryV2.uploader.destroy(avatarExist.cloudId)
             }
             // delete comment
+            const commentExist = await appman.db.BookComments.findAll({
+                where: {
+                    bookId: bookId
+                }
+            })
+            if (commentExist && commentExist.length > 0) {
+                await appman.db.BookComments.destroy({
+                    where: {
+                        bookId
+                    }
+                })
+            }
             await transaction.commit();
             return appman.response.apiSuccess(res, deleteBook);
         } catch (error) {
@@ -376,8 +559,7 @@ module.exports = {
     },
     uploadImageCms: async (req, res) => {
         try {
-            console.log("req.file.path", req.file.path);
-            const dataCloud = await cloudinaryV2.uploader.upload(req.file.path, {folder: 'ImageBookWeb'})
+            const dataCloud = await cloudinaryV2.uploader.upload(req.file.path, { folder: 'ImageBookWeb' })
             return appman.response.apiSuccess(res, {
                 image: dataCloud.secure_url,
                 cloudId: dataCloud.public_id,

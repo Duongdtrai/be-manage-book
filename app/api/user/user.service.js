@@ -1,10 +1,14 @@
 
 
 
-const { Op } = require("sequelize");
-const sequelize = require("sequelize");
 const userFunc = require("./user.func");
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
+const { SYSTEM_ADMIN } = require('../../core/database/constant/user')
+const cloudinaryV2 = require("../../core/cloudinary/cloudinary.service")
+const status = require('./user.response-status');
+const { Op } = require("sequelize");
+
 module.exports = {
     loginForCms: async (req, res) => {
         const transaction = await appman.db.sequelize.transaction();
@@ -31,21 +35,18 @@ module.exports = {
             return appman.response.systemError(res, error);
         }
     },
+
     loginForLP: async (req, res) => {
-        const transaction = await appman.db.sequelize.transaction();
         try {
             const { email, password } = req.body;
             const userExist = await appman.db.Users.findOne({
                 where: {
                     email,
-                    role: 1
+                    role: SYSTEM_ADMIN.USER
                 }
             });
             if (userExist && await userFunc.checkPassword(password, userExist.password)) {
-                const {token, refreshToken} = await userFunc.loginLP(userExist)
-                console.log("token", token);
-                console.log("refreshToken", refreshToken);
-
+                const { token, refreshToken } = await userFunc.loginLP(userExist)
                 return appman.response.apiSuccess(res, {
                     token: token,
                     refreshToken: refreshToken,
@@ -56,21 +57,51 @@ module.exports = {
                 throw new Error("Không có account này hoặc sai mật khẩu")
             }
         } catch (error) {
+            return appman.response.systemError(res, error);
+        }
+    },
+
+    logout: async (req, res) => {
+        const transaction = await appman.db.sequelize.transaction();
+        try {
+            const userId = req.user.id;
+            const tokenExists = await appman.db.Tokens.findOne({
+                where: {
+                    userId
+                }
+            })
+            if (tokenExists) {
+                const tokenDelete = await appman.db.Tokens.destroy({
+                    where: {
+                        userId
+                    }
+                },
+                    transaction
+                )
+                await transaction.commit();
+                return appman.response.apiSuccess(res, tokenDelete);
+            }
+            else {
+                return appman.response.resApiError(res, 403, status[400]);
+            }
+        } catch (error) {
             await transaction.rollback()
             return appman.response.systemError(res, error);
         }
     },
+
     register: async (req, res) => {
         const transaction = await appman.db.sequelize.transaction();
         try {
             const {
-                avatar,
+                image,
                 email,
                 password,
                 gender,
                 age,
                 address,
-                numberPhone
+                numberPhone,
+                username
             } = req.body;
             const userExist = await appman.db.Users.findOne({
                 where: {
@@ -81,9 +112,19 @@ module.exports = {
             if (userExist) {
                 throw new Error("Trùng email")
             } else {
+                let imageCreate = null
+                if (image && image.image && image.cloudId) {
+                    imageCreate = await appman.db.Avatars.create({
+                        image: image.image,
+                        cloudId: image.cloudId
+                    }, {
+                        transaction
+                    })
+                }
+                const imageIdCreate = imageCreate.id || null
                 const passSecurity = await userFunc.genPassword(password)
-                newUser = await userFunc.register({ avatar, email, passSecurity, gender, age, address, numberPhone }, transaction)
-                const token = jwt.sign({ userId: newUser.id, role: 1 }, process.env.SECRET_OR_KEY, { expiresIn: '15m' })
+                newUser = await userFunc.register({ imageIdCreate, email, passSecurity, gender, age, address, numberPhone, username }, transaction)
+                const token = jwt.sign({ userId: newUser.id, role: 1 }, process.env.SECRET_OR_KEY, { expiresIn: '7d' })
                 const refreshToken = jwt.sign({ userId: newUser.id, role: 1 }, process.env.SECRET_OR_KEY, { expiresIn: '7d' })
                 await appman.db.Tokens.create({
                     token,
@@ -92,54 +133,96 @@ module.exports = {
                 }, {
                     transaction
                 })
+                await transaction.commit();
+                return appman.response.apiSuccess(res, {
+                    email: newUser.email,
+                    role: newUser.role,
+                    token,
+                    refreshToken,
+                });
             }
-            await transaction.commit();
-            return appman.response.apiSuccess(res, newUser);
+
         } catch (error) {
             await transaction.rollback();
             return appman.response.systemError(res, error);
         }
     },
 
-    logout: (req, res) => {
-
+    editUser: async (req, res) => {
+        const transaction = await appman.db.sequelize.transaction();
+        try {
+            const userId = req.user.id
+            const {
+                username,
+                gender,
+                age,
+                address,
+                numberPhone,
+                image
+            } = req.body;
+            let newImage = null
+            if (image && image.image && image.cloudId) {
+                if (req.user.imageId) {
+                    await appman.db.Avatars.update({
+                        image: image.image,
+                        cloudId: image.cloudId
+                    }, {
+                        where: {
+                            id: req.user.imageId
+                        },
+                        transaction
+                    })
+                } else {
+                    newImage = await appman.db.Avatars.create({
+                        image: image.image,
+                        cloudId: image.cloudId
+                    }, {
+                        transaction
+                    })
+                }
+            }
+            const dataEdit = await appman.db.Users.update({
+                imageId: req.user.imageId || newImage.id,
+                username,
+                gender,
+                age,
+                address,
+                numberPhone,
+            }, {
+                where: {
+                    id: userId
+                }, transaction
+            })
+            await transaction.commit();
+            return appman.response.apiSuccess(res, dataEdit);
+        } catch (error) {
+            await transaction.rollback();
+            return appman.response.systemError(res, error);
+        }
     },
 
-    forgotPassword: (req, res) => {
-
-    },
     refreshToken: async (req, res) => {
         const transaction = await appman.db.sequelize.transaction();
         try {
-            const { userId } = req.query
-            const userExist = appman.db.Users.findOne({
-                where: {
-                    id: userId,
-                    role: 1
-                }
+            const userId = req.user.id;
+            const role = req.user.role;
+            const token = jwt.sign({ userId: userId, role: role }, process.env.SECRET_OR_KEY, { expiresIn: '7d' })
+            const refreshToken = jwt.sign({ userId: userId, role: role }, process.env.SECRET_OR_KEY, { expiresIn: '7d' })
+            const tokenData = await appman.db.Tokens.update({
+                token,
+                refreshToken: role === SYSTEM_ADMIN.ADMIN ? token : refreshToken
+            }, {
+                where: { id: userId },
+                transaction
             })
-            if (userExist) {
-                const token = jwt.sign({ userId: userId, role: 1 }, process.env.SECRET_OR_KEY, { expiresIn: '15m' })
-                const refreshToken = jwt.sign({ userId: userId, role: 1 }, process.env.SECRET_OR_KEY, { expiresIn: '7d' })
-                const tokenData = await appman.db.Tokens.update({
-                    token,
-                    refreshToken
-                }, {
-                    where: { id: userId },
-                    transaction
-                })
-                await transaction.commit();
-                return appman.response.apiSuccess(res, tokenData);
-            }
-            else {
-                throw new Error("không tìm thấy user")
-            }
-
+            await transaction.commit();
+            return appman.response.apiSuccess(res, tokenData);
         } catch (error) {
             await transaction.rollback();
             return appman.response.systemError(res, error);
         }
     },
+
     changePasswordCms: async (req, res) => {
         const transaction = await appman.db.sequelize.transaction();
         try {
@@ -148,7 +231,7 @@ module.exports = {
             if (checkPass) {
                 var user = await appman.db.Users.update(
                     {
-                        password: await userFunc.genPassword(newPassword) 
+                        password: await userFunc.genPassword(newPassword)
                     },
                     {
                         where: {
@@ -158,7 +241,7 @@ module.exports = {
                         transaction
                     }
                 )
-          
+
             }
             else {
                 throw new Error("Password không đúng")
@@ -171,7 +254,8 @@ module.exports = {
         }
 
     },
-    changePasswordLP:  async (req, res) => {
+
+    changePasswordLP: async (req, res) => {
         const transaction = await appman.db.sequelize.transaction();
         try {
             const { password, newPassword } = req.body;
@@ -189,25 +273,183 @@ module.exports = {
                         transaction
                     }
                 )
-          
+                await transaction.commit();
+                return appman.response.apiSuccess(res, user);
             }
             else {
                 throw new Error("Password không đúng")
             }
-            await transaction.commit();
-            return appman.response.apiSuccess(res, user);
         } catch (error) {
             await transaction.rollback();
             return appman.response.systemError(res, error);
         }
     },
-    getUserDetails: async (req, res) => {
+    getAllUser: async (req, res) => {
+        try {
+            const { page, size, freeWord } = req.query
+            let offset = 0
+            let limit = 10
+            if (page && size) {
+                offset = (Number(page) - 1) * Number(size)
+            }
+            if (size) {
+                limit = Number(size)
+            }
+            const operator = {
+                offset,
+                limit,
+                distinct: true,
+                attributes: ['email', 'username', 'gender', 'age', 'address', 'numberPhone'],
+                include: [
+                    {
+                        model: appman.db.Avatars,
+                        as: 'avatar_user',
+                        attributes: ["image", "cloudId"]
+                    }
+                ],
+                where: {
+                    role: SYSTEM_ADMIN.USER
+                }
+            }
+
+            if (freeWord) {
+                operator.where = {
+                    username: {
+                        [Op.like]: "%" + freeWord + "%"
+                    }
+                }
+            }
+            const userExist = await appman.db.Users.findAndCountAll(operator);
+            return appman.response.apiSuccess(res, userExist);
+        } catch (error) {
+            return appman.response.systemError(res, error);
+        }
+    },
+
+    getUserDetailsCMS: async (req, res) => {
         const transaction = await appman.db.sequelize.transaction();
         try {
-            const userId = req.params.userId;
+            const userId = req.user['dataValues'].id
             const userExist = await appman.db.Users.findOne({
+                attributes: ['email', 'username', 'gender', 'age', 'address', 'numberPhone'],
+                include: [
+                    // {
+                    //     model: appman.db.Books,
+                    //     as: "bookCart",
+                    //     attributes: ["title", "description", "price", "numberPage", "releaseDate"],
+                    //     include: [
+                    //         {
+                    //             model: appman.db.Avatars,
+                    //             as: 'avatar_book',
+                    //             attributes: ['image', 'cloudId']
+                    //         },
+                    //         {
+                    //             model: appman.db.Categories,
+                    //             as: 'category_book',
+                    //             attributes: ['title'],
+                    //             include: [
+                    //                 {
+                    //                     model: appman.db.Avatars,
+                    //                     as: 'avatar_category',
+                    //                     attributes: ['image', 'cloudId']
+                    //                 }
+                    //             ]
+                    //         },
+                    //         {
+                    //             model: appman.db.Authors,
+                    //             as: 'author_book',
+                    //             attributes: ['fullName', 'description', 'birthday', 'address', 'gender'],
+                    //             include: [
+                    //                 {
+                    //                     model: appman.db.Avatars,
+                    //                     as: 'avatar',
+                    //                     attributes: ['image', 'cloudId']
+                    //                 }
+                    //             ]
+                    //         }
+                    //     ],
+                    //     through: {
+                    //         model: appman.db.Carts,
+                    //         attributes: ["status", "note", "address", "numberPhone"],
+                    //     }
+                    // },
+                    {
+                        model: appman.db.Avatars,
+                        as: 'avatar_user',
+                        attributes: ["image", "cloudId"]
+                    }
+                ],
                 where: {
                     id: userId,
+                    role: SYSTEM_ADMIN.ADMIN
+                }
+            });
+            if (!userExist) {
+                throw new Error("Không tìm thấy user nào")
+            }
+            await transaction.commit();
+            return appman.response.apiSuccess(res, userExist);
+        } catch (error) {
+            // await transaction.rollback();
+            return appman.response.systemError(res, error);
+        }
+    },
+    getUserDetailsForLP: async (req, res) => {
+        const transaction = await appman.db.sequelize.transaction();
+        try {
+            const userId = req.user.id;
+            const userExist = await appman.db.Users.findOne({
+                attributes: ['email', 'username', 'gender', 'age', 'address', 'numberPhone'],
+                include: [
+                    // {
+                    //     model: appman.db.Books,
+                    //     as: "bookCart",
+                    //     attributes: ["title", "description", "price", "numberPage", "releaseDate"],
+                    //     include: [
+                    //         {
+                    //             model: appman.db.Avatars,
+                    //             as: 'avatar_book',
+                    //             attributes: ['image', 'cloudId']
+                    //         },
+                    //         {
+                    //             model: appman.db.Categories,
+                    //             as: 'category_book',
+                    //             attributes: ['title'],
+                    //             include: [
+                    //                 {
+                    //                     model: appman.db.Avatars,
+                    //                     as: 'avatar_category',
+                    //                     attributes: ['image', 'cloudId']
+                    //                 }
+                    //             ]
+                    //         },
+                    //         {
+                    //             model: appman.db.Authors,
+                    //             as: 'author_book',
+                    //             attributes: ['fullName', 'description', 'birthday', 'address', 'gender'],
+                    //             include: [
+                    //                 {
+                    //                     model: appman.db.Avatars,
+                    //                     as: 'avatar',
+                    //                     attributes: ['image', 'cloudId']
+                    //                 }
+                    //             ]
+                    //         }
+                    //     ],
+                    //     through: {
+                    //         model: appman.db.Carts,
+                    //         attributes: ["status", "note", "address", "numberPhone"],
+                    //     }
+                    // },
+                    {
+                        model: appman.db.Avatars,
+                        as: 'avatar_user',
+                        attributes: ["image", "cloudId"]
+                    }
+                ],
+                where: {
+                    id: userId,
+                    role: SYSTEM_ADMIN.USER
                 }
             });
             if (!userExist) {
@@ -220,23 +462,28 @@ module.exports = {
             return appman.response.systemError(res, error);
         }
     },
-    getUserDetailsForLP:  async (req, res) => {
-        const transaction = await appman.db.sequelize.transaction();
+
+    uploadImageCms: async (req, res) => {
         try {
-            const userId = req.params.userId;
-            const userExist = await appman.db.Users.findOne({
-                where: {
-                    id: userId,
-                }
+            const dataCloud = await cloudinaryV2.uploader.upload(req.file.path, { folder: 'ImageUserWeb' })
+            return appman.response.apiSuccess(res, {
+                image: dataCloud.secure_url,
+                cloudId: dataCloud.public_id,
             });
-            if (!userExist) {
-                throw new Error("Không tìm thấy user nào")
-            }
-            await transaction.commit();
-            return appman.response.apiSuccess(res, userExist);
         } catch (error) {
-            await transaction.rollback();
-            return appman.response.systemError(res, error);
+            return appman.response.systemError(res, error)
+        }
+    },
+
+    uploadImageLP: async (req, res) => {
+        try {
+            const dataCloud = await cloudinaryV2.uploader.upload(req.file.path, { folder: 'ImageUserWeb' })
+            return appman.response.apiSuccess(res, {
+                image: dataCloud.secure_url,
+                cloudId: dataCloud.public_id,
+            });
+        } catch (error) {
+            return appman.response.systemError(res, error)
         }
     },
 }

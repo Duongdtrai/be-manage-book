@@ -1,11 +1,11 @@
 
-const status = require("./author.response-status");
+const status = require("./category.response-status");
 const cloudinaryV2 = require("../../core/cloudinary/cloudinary.service")
 const Sequelize = require("sequelize")
 const Op = Sequelize.Op;
 
 module.exports = {
-    getAllAuthor: async (req, res) => {
+    getAllCategory: async (req, res) => {
         let { page, size, freeWord } = req.query;
         let offset = 0;
         let limit = 10;
@@ -22,19 +22,14 @@ module.exports = {
                 distinct: true,
                 attributes: [
                     "id",
-                    "fullName",
-                    "description",
-                    "birthday",
-                    "address",
-                    "gender",
-                    "imageId",
+                    "title",
                     "createdAt",
                     "updatedAt"
                 ],
                 include: [
                     {
                         model: appman.db.Avatars,
-                        as: 'avatar',
+                        as: 'avatar_category',
                         attributes: ["id", "image", "cloudId"],
                     },
                 ],
@@ -43,44 +38,40 @@ module.exports = {
             }
             if (freeWord) {
                 operator.where = {
-                    fullName: {
+                    title: {
                         [Op.like]: "%" + freeWord + "%",
                     }
                 }
             }
-            const listAuthors = await appman.db.Authors.findAndCountAll(operator)
-            return appman.response.apiSuccess(res, listAuthors);
+            const listCategories = await appman.db.Categories.findAndCountAll(operator)
+            return appman.response.apiSuccess(res, listCategories);
         } catch (error) {
             return appman.response.systemError(res, error)
         }
     },
-    getAuthorById: async (req, res) => {
+    getCategoryById: async (req, res) => {
         try {
-            const { authorId } = req.params
+            const { categoryId } = req.params
             const operator = {
                 distinct: true,
                 attributes: [
                     "id",
-                    "fullName",
-                    "description",
-                    "birthday",
-                    "address",
-                    "gender",
+                    "title",
                     "createdAt",
                     "updatedAt"
                 ],
                 where: {
-                    id: authorId
+                    id: categoryId
                 },
                 include: [
                     {
                         model: appman.db.Avatars,
-                        as: 'avatar',
+                        as: 'avatar_category',
                         attributes: ["id", "image", "cloudId"],
-                    }
+                    },
                 ]
             }
-            const authorExist = await appman.db.Authors.findOne(operator)
+            const authorExist = await appman.db.Categories.findOne(operator)
             if (!authorExist) {
                 return appman.response.resApiError(res, 403, status[400]);
             }
@@ -89,16 +80,12 @@ module.exports = {
             return appman.response.systemError(res, error)
         }
     },
-    createAuthor: async (req, res) => {
+    createCategory: async (req, res) => {
         const transaction = await appman.db.sequelize.transaction();
         try {
             const {
-                fullName,
+                title,
                 image,
-                description,
-                birthday,
-                address,
-                gender,
             } = req.body
             let imageCreate = null
             if (image && image.image && image.cloudId) {
@@ -109,48 +96,41 @@ module.exports = {
                     transaction
                 })
             }
-            const author = await appman.db.Authors.create({
-                fullName,
+            const category = await appman.db.Categories.create({
+                title,
                 imageId: imageCreate.id || null,
-                description,
-                birthday,
-                address,
-                gender,
             }, {
                 transaction
             })
             await transaction.commit();
-            return appman.response.apiSuccess(res, author);
+            return appman.response.apiSuccess(res, category);
         } catch (error) {
             await transaction.rollback();
             return appman.response.systemError(res, error)
         }
     },
-    editAuthor: async (req, res) => {
+    editCategory: async (req, res) => {
         const transaction = await appman.db.sequelize.transaction()
         try {
             const {
-                fullName,
+                title,
                 image,
-                description,
-                birthday,
-                address,
-                gender,
             } = req.body
-            const { authorId } = req.params
-            const authorExist = await appman.db.Authors.findOne({
-                where: { id: authorId }
+            const { categoryId } = req.params
+
+            const categoryExist = await appman.db.Categories.findOne({
+                where: { id: categoryId }
             })
 
-            if (authorExist) {
+            if (categoryExist) {
                 let newImage = null
                 if (image && image.image && image.cloudId) {
-                    if (authorExist.imageId) {
+                    if (categoryExist.imageId) {
                         await appman.db.Avatars.update({
                             image: image.image,
                             cloudId: image.cloudId
                         }, {
-                            where: { id: authorExist.imageId },
+                            where: { id: categoryExist.imageId },
                             transaction
                         })
                     } else {
@@ -162,149 +142,133 @@ module.exports = {
                         })
                     }
                 }
-                const author = await appman.db.Authors.update({
-                    imageId: authorExist.imageId || newImage.id,
-                    fullName,
-                    description,
-                    birthday,
-                    address,
-                    gender,
+                else {
+                    return appman.response.resApiError(res, 403, status[400]);
+                }
+                const category = await appman.db.Categories.update({
+                    title,
+                    imageId: categoryExist.imageId || newImage.id
                 }, {
                     where: {
-                        id: authorId
+                        id: categoryId
                     },
                     transaction
                 })
                 await transaction.commit();
-                return appman.response.apiSuccess(res, author);
+                return appman.response.apiSuccess(res, category);
             }
-            else {
-                return appman.response.resApiError(res, 403, status[400]);
-            }
-
         } catch (error) {
             await transaction.rollback();
             return appman.response.systemError(res, error)
         }
     },
-    deleteAuthor: async (req, res) => {
+    deleteCategory: async (req, res) => {
         const transaction = await appman.db.sequelize.transaction();
         try {
-            const { authorId } = req.params
-            const authorExist = await appman.db.Authors.findOne(
+            const { categoryId } = req.params
+            const categoryExist = await appman.db.Categories.findOne(
                 {
                     where: {
-                        id: authorId
+                        id: categoryId
                     }
                 }
             )
-            if (!authorExist) {
+            if (!categoryExist) {
                 return appman.response.resApiError(res, 403, status[400]);
             }
-            const authorBookExist = await appman.db.Books.findOne({
+            const categoryBookExist = await appman.db.Books.findAll({
                 where: {
-                    id: authorId
+                    category: categoryId
                 }
             })
-            if (authorBookExist && authorBookExist.length > 0) {
+            if (categoryBookExist && categoryBookExist.length > 0) {
                 return appman.response.resApiError(res, 403, status[401]);
             }
-            const avatarAuthorExist = await appman.db.Avatars.findOne({
+            const avatarCategoryExist = await appman.db.Avatars.findOne({
                 where: {
-                    id: authorExist.imageId
+                    id: categoryExist.imageId
                 }
             })
             // delete image
-            if (avatarAuthorExist) {
-                await avatarAuthorExist.destroy({
+            if (avatarCategoryExist) {
+                await avatarCategoryExist.destroy({
                     where: {
-                        id: avatarAuthorExist.imageId
+                        id: avatarCategoryExist.imageId
                     }
                 })
-                await cloudinaryV2.uploader.destroy(avatarAuthorExist.cloudId)
+                await cloudinaryV2.uploader.destroy(avatarCategoryExist.cloudId)
             }
-            // delete author
-            const deleteBook = await appman.db.Authors.destroy({
+            // delete category
+            const deleteCategory = await appman.db.Categories.destroy({
                 where: {
-                    id: authorId
+                    id: categoryId
                 }
             }, {
                 transaction
             })
             await transaction.commit();
-            return appman.response.apiSuccess(res, deleteBook);
+            return appman.response.apiSuccess(res, deleteCategory);
         } catch (error) {
             await transaction.rollback();
             return appman.response.systemError(res, error)
         }
     },
-    getAllAuthorForLP: async (req, res) => {
-        let { page, size } = req.query;
-        let offset = 0;
-        let limit = 10;
-        if (page && size) {
-            offset = (Number(page) - 1) * Number(size)
-        }
-        if (size) {
-            limit = Number(size)
-        }
+
+    getAllCategoryForLP: async (req, res) => {
         try {
             const operator = {
-                limit,
-                offset,
                 distinct: true,
                 attributes: [
                     "id",
-                    "fullName",
-                    "image",
-                    "description",
-                    "birthday",
-                    "address",
-                    "gender",
-                    "createdAt",
-                    "updatedAt"
+                    "title",
+                ],
+                include: [
+                    {
+                        model: appman.db.Avatars,
+                        as: 'avatar_category',
+                        attributes: ['image']
+                    }
                 ],
                 order: [["createdAt", "DESC"]],
             }
-            const listAuthors = await appman.db.Authors.findAndCountAll(operator)
-            return appman.response.apiSuccess(res, listAuthors);
+            const listCategories = await appman.db.Categories.findAndCountAll(operator)
+            return appman.response.apiSuccess(res, listCategories);
         } catch (error) {
             return appman.response.systemError(res, error)
         }
     },
-    getAuthorForLPById: async (req, res) => {
+    getCategoryForLPById: async (req, res) => {
         try {
-            const { authorId } = req.params
+            const { categoryId } = req.params
             const operator = {
-                limit,
-                offset,
                 distinct: true,
                 attributes: [
                     "id",
-                    "fullName",
-                    "description",
-                    "birthday",
-                    "address",
-                    "gender",
-                    "createdAt",
-                    "updatedAt"
+                    "title",
+                ],
+                include: [
+                    {
+                        model: appman.db.Avatars,
+                        as: 'avatar_category',
+                        attributes: ['image']
+                    }
                 ],
                 where: {
-                    id: authorId
+                    id: categoryId
                 },
             }
-            const authorExist = await appman.db.Authors.findOne(operator)
-            if (!authorExist) {
+            const categoryExist = await appman.db.Categories.findOne(operator)
+            if (!categoryExist) {
                 return appman.response.resApiError(res, 403, status[400]);
             }
-            return appman.response.apiSuccess(res, authorExist);
+            return appman.response.apiSuccess(res, categoryExist);
         } catch (error) {
             return appman.response.systemError(res, error)
         }
     },
     uploadImageCms: async (req, res) => {
         try {
-            const dataCloud = await cloudinaryV2.uploader.upload(req.file.path, { folder: 'ImageBookWeb' })
+            const dataCloud = await cloudinaryV2.uploader.upload(req.file.path, { folder: 'ImageCategoryWeb' })
             return appman.response.apiSuccess(res, {
                 image: dataCloud.secure_url,
                 cloudId: dataCloud.public_id,

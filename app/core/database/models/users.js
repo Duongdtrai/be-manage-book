@@ -5,16 +5,38 @@ const {
 module.exports = (sequelize, DataTypes) => {
   class Users extends Model {
     static associate(models) {
-      Users.belongsToMany(models.Books, { through: 'stars', as: 'starsBooks', foreignKey: 'userId' });
-      Users.belongsToMany(models.Books, { through: 'carts', as: 'cartBooks', foreignKey: 'userId'})
+      // Users.belongsToMany(models.Books, {
+      //   as: 'comment_user',
+      //   foreignKey: 'userId',
+      //   through:  models.BookComments,
+      // });
+      Users.belongsToMany(models.Books,
+        {
+          through: models.Carts,
+          as: 'bookCart',
+          foreignKey: 'userId'
+        })
       Users.hasOne(models.Tokens, {
         as: "token",
-				foreignKey: 'userId'
-			})
+        foreignKey: 'userId'
+      })
+      Users.belongsTo(models.Avatars, {
+        as: "avatar_user",
+        foreignKey: 'imageId'
+      })
+
+      Users.hasMany(models.Carts, {
+        as: "user",
+        foreignKey: 'userId'
+      })
+      Users.hasMany(models.BookComments, {
+        as: "commentUser",
+        foreignKey: 'userId'
+      })
     }
   }
   Users.init({
-    avatar: DataTypes.STRING,
+    imageId: DataTypes.INTEGER,
     username: DataTypes.STRING,
     email: DataTypes.STRING,
     gender: DataTypes.STRING,

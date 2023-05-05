@@ -56,7 +56,7 @@ router.get('/:cartId', cartService.getCartsDetails)
 
 /**
  * @openapi
- * /cms/edit-cart/{cartId}:
+ * /cms/cart/edit-cart/{cartId}:
  *   put:
  *     tags:
  *      - "Cart"
@@ -65,9 +65,38 @@ router.get('/:cartId', cartService.getCartsDetails)
  *      - in: "path"
  *        name: "cartId"
  *        type: "string"
- *      - in: "query"
- *        name: "status"
- *        type: "string"
+ *      - in: "body"
+ *        name: "body"
+ *        description: "Thông tin thêm cart"
+ *        schema:
+ *          type: "object"
+ *          properties:
+ *            userId:
+ *              type: "number"
+ *              description: "userId"
+ *            bookId:
+ *              type: "number"
+ *              description: "bookId"
+ *            status:
+ *              type: "string"
+ *              description: "status"
+ *              example: done   
+ *            note:
+ *              type: "string"
+ *              description: "note" 
+ *              example: good  
+ *            address:
+ *              type: "string"
+ *              description: "address" 
+ *              example: ThanhHoa 
+ *            numberPhone:
+ *              type: "string"
+ *              description: "quantity" 
+ *              example: 0123456789  
+ *            quantity:
+ *              type: "number"
+ *              description: "quantity" 
+ *              example: 1   
  *     responses:
  *       200:
  *         description: "OK"
@@ -80,7 +109,7 @@ router.put("/edit-cart/:cartId", cartService.editCart) // admin
 
 /**
  * @openapi
- * /cms/delete-cart/{cardId}:
+ * /cms/cart/delete-cart/{cardId}:
  *   delete:
  *     tags:
  *      - "Cart"
@@ -107,14 +136,14 @@ router.delete("/delete-cart/:bookId", cartService.deleteCartForCMS)
 
 /**
  * @openapi
- * /landing-page/cart/list-cart-user:
+ * /landing-page/cart/user/list-cart-user:
  *   get:
  *     tags:
  *      - "Cart"
  *     summary: Thông tin chi tiết cart của user
  *     parameters:
  *      - in: "query"
- *        name: "userId"
+ *        name: "statusCart"
  *        type: "string"
  *     responses:
  *       200:
@@ -124,16 +153,16 @@ router.delete("/delete-cart/:bookId", cartService.deleteCartForCMS)
  *     security:
  *      - Bearer: []
  */
-router.get('/list-cart-user', cartService.getAllCartsForLP)
+router.get('/user/list-cart-user', cartService.getAllCartsForLP)
 
 
 /**
  * @openapi
- * /landing-page/cart/create-new-card:
+ * /landing-page/cart/user/create-new-cart:
  *   post:
  *     tags:
  *      - "Cart"
- *     summary: Thêm mới cart
+ *     summary: Thêm mới cart LP
  *     parameters:
  *      - in: "body"
  *        name: "body"
@@ -150,10 +179,23 @@ router.get('/list-cart-user', cartService.getAllCartsForLP)
  *            status:
  *              type: "string"
  *              description: "status"
+ *              example: done   
+ *            note:
+ *              type: "string"
+ *              description: "note" 
+ *              example: good  
+ *            address:
+ *              type: "string"
+ *              description: "address" 
+ *              example: ThanhHoa 
+ *            numberPhone:
+ *              type: "string"
+ *              description: "quantity" 
+ *              example: 0123456789  
  *            quantity:
  *              type: "number"
  *              description: "quantity" 
- *              example: 1          
+ *              example: 1         
  *     responses:
  *       200:
  *         description: "OK"
@@ -162,12 +204,12 @@ router.get('/list-cart-user', cartService.getAllCartsForLP)
  *     security:
  *      - Bearer: []
  */
-router.post('/create-new-cart', cartService.createNewCartForLP) 
+router.post('/user/create-new-cart', cartService.createNewCartForLP) 
 
 
 /**
  * @openapi
- * /landing-page/edit-cart-user/{cartId}:
+ * /landing-page/cart/user/edit-cart/{cartId}:
  *   put:
  *     tags:
  *      - "Cart"
@@ -176,9 +218,38 @@ router.post('/create-new-cart', cartService.createNewCartForLP)
  *      - in: "path"
  *        name: "cartId"
  *        type: "string"
- *      - in: "query"
- *        name: "quantity"
- *        type: "number"
+ *      - in: "body"
+ *        name: "body"
+ *        description: "Thông tin thêm cart"
+ *        schema:
+ *          type: "object"
+ *          properties:
+ *            userId:
+ *              type: "number"
+ *              description: "userId"
+ *            bookId:
+ *              type: "number"
+ *              description: "bookId"
+ *            status:
+ *              type: "string"
+ *              description: "status"
+ *              example: done   
+ *            note:
+ *              type: "string"
+ *              description: "note" 
+ *              example: good  
+ *            address:
+ *              type: "string"
+ *              description: "address" 
+ *              example: ThanhHoa 
+ *            numberPhone:
+ *              type: "string"
+ *              description: "quantity" 
+ *              example: 0123456789  
+ *            quantity:
+ *              type: "number"
+ *              description: "quantity" 
+ *              example: 1       
  *     responses:
  *       200:
  *         description: "OK"
@@ -187,11 +258,11 @@ router.post('/create-new-cart', cartService.createNewCartForLP)
  *     security:
  *      - Bearer: []
  */
-router.put("/edit-cart-user/:cartId", cartService.editCartForLP) // admin
+router.put("/user/edit-cart/:cartId", cartService.editCartForLP) // admin
 
 /**
  * @openapi
- * /landing-page/delete-cart-user/{cardId}:
+ * /landing-page/cart/user/delete-cart/{cartId}:
  *   delete:
  *     tags:
  *      - "Cart"
@@ -199,7 +270,7 @@ router.put("/edit-cart-user/:cartId", cartService.editCartForLP) // admin
  *     parameters:
  *      - in: "path"
  *        name: "cartId"
- *        type: "number"
+ *        type: "string"
  *     responses:
  *       200:
  *         description: "OK"
@@ -208,5 +279,7 @@ router.put("/edit-cart-user/:cartId", cartService.editCartForLP) // admin
  *     security:
  *      - Bearer: []
  */
-router.delete("/delete-cart-user/:cartId", cartService.deleteCartForLP) 
+router.delete("/user/delete-cart/:cartId", cartService.deleteCartForLP) 
+
+
 module.exports = router;

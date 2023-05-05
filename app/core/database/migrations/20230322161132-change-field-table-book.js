@@ -13,7 +13,7 @@ module.exports = {
       //   model: _tableAuthor,
       //   key: 'id'
       // },
-    },{transaction})
+    }, { transaction })
   },
   async down(queryInterface, Sequelize) {
     await queryInterface.dropTable(_tableBook);

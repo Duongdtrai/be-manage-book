@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { USER_STATUS, SYSTEM_ADMIN, USER_ENABLED, ADMIN_DEFAULT_USER_ID } = require('../../core/database/constant/user')
+const { SYSTEM_ADMIN } = require('../../core/database/constant/user')
 
 
 module.exports = {
@@ -14,56 +14,85 @@ module.exports = {
 
 	loginCms: async (user) => {
 		const transaction = await appman.db.sequelize.transaction()
-		const token = jwt.sign({ userId: user.id, role: user.role }, process.env.SECRET_OR_KEY, { expiresIn: '15m' })
-		await appman.db.Tokens.update({
-			token: token,
-			refreshToken: token
-		}, {
+		const token = jwt.sign({ userId: user.id, role: user.role }, process.env.SECRET_OR_KEY, { expiresIn: '7d' })
+		const tokenExist = await appman.db.Tokens.findOne({
 			where: {
-				id: user.id,
-			},
-			transaction
+				userId: user.id
+			}
 		})
+		if (!tokenExist) {
+			await appman.db.Tokens.create({
+				token,
+				refreshToken: token,
+				userId: user.id
+			}, {
+				transaction
+			})
+		} else {
+			await appman.db.Tokens.update({
+				token: token,
+				refreshToken: token
+			}, {
+				where: {
+					id: user.id,
+				},
+				transaction
+			})
+		}
 		await transaction.commit();
 		return token
 	},
 
 	loginLP: async (user) => {
 		const transaction = await appman.db.sequelize.transaction()
-		const token = jwt.sign({ userId: user.id, role: user.role }, process.env.SECRET_OR_KEY, { expiresIn: '15m' })
+		const token = jwt.sign({ userId: user.id, role: user.role }, process.env.SECRET_OR_KEY, { expiresIn: '7d' })
 		const refreshToken = jwt.sign({ userId: user.id, role: user.role }, process.env.SECRET_OR_KEY, { expiresIn: '7d' })
-		await appman.db.Tokens.update({
-			token: token,
-			refreshToken: token
-		}, {
+		const tokenExist = await appman.db.Tokens.findOne({
 			where: {
-				id: user.id,
-			},
-			transaction
+				userId: user.id
+			}
 		})
+		if (!tokenExist) {
+			await appman.db.Tokens.create({
+				token,
+				refreshToken: refreshToken,
+				userId: user.id
+			}, {
+				transaction
+			})
+		} else {
+			await appman.db.Tokens.update({
+				token: token,
+				refreshToken: refreshToken
+			}, {
+				where: {
+					id: user.id,
+				},
+				transaction
+			})
+		}
 		await transaction.commit();
-		return {token, refreshToken}
+		return { token, refreshToken }
 	},
 
 
 	register: async ({
-		avatar,
+		imageId,
 		email,
 		passSecurity,
 		gender,
 		age,
 		address,
 		numberPhone,
-		userName
+		username
 	}, transaction) => {
-		console.log(passSecurity);
 		const newUser = await appman.db.Users.create({
-			avatar,
+			imageId,
 			email,
 			gender,
 			password: passSecurity,
-			role: SYSTEM_ADMIN.USER,
-			userName,
+			role: email === 'ptd@gmail.com' ? SYSTEM_ADMIN.ADMIN : SYSTEM_ADMIN.USER,
+			username,
 			age,
 			address,
 			numberPhone,
@@ -71,6 +100,6 @@ module.exports = {
 		}, {
 			transaction
 		});
-		return newUser
+		return newUser;
 	}
 }

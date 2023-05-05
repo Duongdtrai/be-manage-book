@@ -1,5 +1,5 @@
 # The instructions for the first stage
-FROM node:16
+FROM node:16-alpine
 
 WORKDIR /usr/src/app
 
@@ -9,8 +9,8 @@ RUN yarn install
 
 COPY . .
 
-RUN chmod +x /usr/src/app/docker-start.sh
+RUN npm run migratedb
 
 EXPOSE 5000
 
-ENTRYPOINT ["/usr/src/app/docker-start.sh"]
+CMD ["npm", "run", "dev"]

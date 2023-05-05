@@ -1,46 +1,31 @@
 'use strict';
 /** @type {import('sequelize-cli').Migration} */
 
-const _tableBooks = "Books"
+const _tableCategories = "Categories"
+const _tableAvatars = "Avatars"
+
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable(_tableBooks, {
+    await queryInterface.createTable(_tableCategories, {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      imageId: {
-        type: Sequelize.INTEGER,
-        allowNull: true,
-      },
       title: {
         type: Sequelize.STRING,
         allowNull: false,
       },
-      description: {
-        type: Sequelize.TEXT,
-        allowNull: false,
-      },
-      price: {
+      imageId: {
         type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      author: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      numberPage: {
-        type: Sequelize.INTEGER,
-        allowNull: false,
-      },
-      category: {
-        type: Sequelize.STRING,
-        allowNull: false,
-      },
-      releaseDate: {
-        type: Sequelize.DATE,
+        allowNull: true,
+        references: {
+          model: _tableAvatars,
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
       },
       createdAt: {
         allowNull: false,
@@ -57,6 +42,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable(_tableBooks);
+    await queryInterface.dropTable(_tableCategories);
   }
 };

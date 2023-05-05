@@ -71,18 +71,17 @@ router.get('/:bookId',  bookService.getBookDetails)
  *        schema:
  *          type: "object"
  *          properties:
- *            avatar:
- *              type: "array"
- *              description: "Danh sách các ảnh đại diện của người dùng."
- *              items:
- *                type: "object"
- *                properties:
- *                  cloudId:
- *                    type: "string"
- *                    description: "ID của ảnh trong đám mây."
+ *            image:
+ *              type: "object"
+ *              properties:
  *                  image:
- *                    type: "string"
- *                    description: "Đường dẫn tới ảnh đại diện."	
+ *                      type: "string"
+ *                      description: "image"
+ *                      example: "https://res.cloudinary.com/ptd/image/upload/v1683907573/ImageUserWeb/qkgmfxmo6yzmloma97we.png"
+ *                  cloudId:
+ *                      type: "string"
+ *                      description: "cloudId"
+ *                      example: "ImageUserWeb/qkgmfxmo6yzmloma97we"
  *            title:
  *              type: "string"
  *              description: "Email người dùng"
@@ -93,13 +92,13 @@ router.get('/:bookId',  bookService.getBookDetails)
  *              type: "number"
  *              description: "giá của sách"
  *            author:
- *              type: "string"
- *              description: "ptd"
+ *              type: "number"
+ *              description: "author"
  *            numberPage:
  *              type: "number"
  *              description: "số lượng của sách"
  *            category:
- *              type: "string"
+ *              type: "number"
  *              description: "thể loại"
  *            releaseDate:
  *              type: "string"
@@ -125,18 +124,24 @@ router.post('/create-new-book', bookService.createNewBook) //admin
  *     parameters:
  *      - in: "path"
  *        name: "bookId"
- *        type: "number"
+ *        type: "string"
  *      - in: "body"
  *        name: "body"
- *        description: "Thông tin thêm phòng"
+ *        description: "Thông tin sửa book"
  *        schema:
  *          type: "object"
  *          properties:
- *            avatar:
- *              type: "array"
- *              items:
- *                  type: string
- *              description: "Tên người dùng"
+ *            image:
+ *              type: "object"
+ *              properties:
+ *                  image:
+ *                      type: "string"
+ *                      description: "image"
+ *                      example: "https://res.cloudinary.com/ptd/image/upload/v1683907573/ImageUserWeb/qkgmfxmo6yzmloma97we.png"
+ *                  cloudId:
+ *                      type: "string"
+ *                      description: "cloudId"
+ *                      example: "ImageUserWeb/qkgmfxmo6yzmloma97we"
  *            title:
  *              type: "string"
  *              description: "Email người dùng"
@@ -147,13 +152,13 @@ router.post('/create-new-book', bookService.createNewBook) //admin
  *              type: "number"
  *              description: "giá của sách"
  *            author:
- *              type: "string"
- *              description: "ptd"
+ *              type: "number"
+ *              description: "author"
  *            numberPage:
  *              type: "number"
  *              description: "số lượng của sách"
  *            category:
- *              type: "string"
+ *              type: "number"
  *              description: "thể loại"
  *            releaseDate:
  *              type: "string"
@@ -225,7 +230,7 @@ router.post("/upImage",  multer.single('files'), bookService.uploadImageCms)
 
 /**
  * @openapi
- * /landing-page/book/list-book:
+ * /landing-page/book/user/list-book:
  *   get:
  *     tags:
  *      - "Book"
@@ -243,6 +248,14 @@ router.post("/upImage",  multer.single('files'), bookService.uploadImageCms)
  *        name: "freeWord"
  *        type: "string"
  *        description: "tìm kiếm theo tên sách"
+ *      - in: "query"
+ *        name: "category"
+ *        type: "string"
+ *        description: "tìm kiếm theo tên danh mục"
+ *      - in: "query"
+ *        name: "author"
+ *        type: "string"
+ *        description: "tìm kiếm theo tên tác giả"
  *     responses:
  *       200:
  *         description: "OK"
@@ -251,12 +264,12 @@ router.post("/upImage",  multer.single('files'), bookService.uploadImageCms)
  *     security:
  *      - Bearer: []
  */
-router.get('/list-book',  bookService.getAllBooksLP)
+router.get('/user/list-book',  bookService.getAllBooksLP)
 
 
 /**
  * @openapi
- * /landing-page/book/{bookId}:
+ * /landing-page/book/user/{bookId}:
  *   get:
  *     tags:
  *      - "Book"
@@ -273,5 +286,5 @@ router.get('/list-book',  bookService.getAllBooksLP)
  *     security:
  *      - Bearer: []
  */
-router.get('/:bookId', bookService.getBookDetailsForLP)
+router.get('/user/:bookId', bookService.getBookDetailsForLP)
 module.exports = router;

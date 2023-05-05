@@ -1,10 +1,10 @@
 'use strict';
 /** @type {import('sequelize-cli').Migration} */
 
-const _tableBookAvatars = "BookAvatars"
+const _tableAvatars = "Avatars"
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable(_tableBookAvatars, {
+    await queryInterface.createTable(_tableAvatars, {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -38,7 +38,7 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.removeConstraint(_tableBookAvatars, 'userId');
-    await queryInterface.dropTable(_tableBookAvatars);
+    await queryInterface.removeConstraint(_tableAvatars, 'userId');
+    await queryInterface.dropTable(_tableAvatars);
   }
 };

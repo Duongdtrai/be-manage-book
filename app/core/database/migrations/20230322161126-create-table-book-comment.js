@@ -2,6 +2,9 @@
 /** @type {import('sequelize-cli').Migration} */
 
 const _tableBookComments = "BookComments"
+const _tableBooks =  "Books"
+const _tableUsers = "Users"
+
 module.exports = {
   async up(queryInterface, Sequelize) {
     await queryInterface.createTable(_tableBookComments, {
@@ -14,7 +17,16 @@ module.exports = {
       bookId: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'Books',
+          model: _tableBooks,
+          key: 'id'
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+      },
+      userId: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: _tableUsers,
           key: 'id'
         },
         onUpdate: 'CASCADE',
@@ -22,6 +34,11 @@ module.exports = {
       },
       comment: {
         type: Sequelize.STRING,
+        allowNull: true,
+      },
+      star: {
+        type: Sequelize.INTEGER,
+        allowNull: false
       },
       createdAt: {
         allowNull: false,

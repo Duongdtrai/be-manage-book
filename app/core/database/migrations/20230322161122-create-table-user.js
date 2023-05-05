@@ -11,8 +11,9 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      avatar: {
-        type: Sequelize.STRING
+      imageId: {
+        type: Sequelize.INTEGER,
+        allowNull: true,
       },
       userName: {
         type: Sequelize.STRING

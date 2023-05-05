@@ -6,13 +6,18 @@ module.exports = (sequelize, DataTypes) => {
   class Authors extends Model {
     static associate(models) {
       Authors.hasMany(models.Books, {
-        foreignKey: 'author'
+        foreignKey: 'author',
+        as: "author_book"
+      });
+      Authors.belongsTo(models.Avatars, {
+        foreignKey: 'imageId',
+        as: 'avatar',
       });
     }
   }
   Authors.init({
     fullName: DataTypes.STRING,
-    image: DataTypes.STRING,
+    imageId: DataTypes.INTEGER,
     description: DataTypes.TEXT,
     birthday: DataTypes.STRING,
     address: DataTypes.STRING,
