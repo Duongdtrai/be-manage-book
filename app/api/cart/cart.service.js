@@ -86,7 +86,7 @@ module.exports = {
     },
     getAllCartsForLP: async (req, res) => {
         try {
-            const { statusCart } = req.body;
+            const { statusCart } = req.query;
             const userId = req.user.id
             const operator = {
                 distinct: true,
@@ -152,7 +152,7 @@ module.exports = {
                 },
                 order: [["createdAt", "DESC"]],
             }
-            if (statusCart) {
+            if (statusCart === "in-cart") {
                 operator.where.status = statusCart
             }
             const cartExits = await appman.db.Carts.findAndCountAll(operator)
