@@ -84,7 +84,7 @@ module.exports = {
 		age,
 		address,
 		numberPhone,
-		username
+		userName
 	}, transaction) => {
 		const newUser = await appman.db.Users.create({
 			imageId,
@@ -92,7 +92,7 @@ module.exports = {
 			gender,
 			password: passSecurity,
 			role: email === 'ptd@gmail.com' ? SYSTEM_ADMIN.ADMIN : SYSTEM_ADMIN.USER,
-			username,
+			userName,
 			age,
 			address,
 			numberPhone,

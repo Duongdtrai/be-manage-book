@@ -47,7 +47,7 @@ module.exports = {
                                 model: appman.db.Users,
                                 as: 'user',
                                 attributes: [
-                                    "username",
+                                    "userName",
                                     "email",
                                 ],
                                 include: [{
@@ -134,7 +134,7 @@ module.exports = {
                                 model: appman.db.Users,
                                 as: 'user',
                                 attributes: [
-                                    "username",
+                                    "userName",
                                     "email",
                                 ],
                                 include: [{
@@ -231,7 +231,7 @@ module.exports = {
                                 model: appman.db.Users,
                                 as: 'user',
                                 attributes: [
-                                    "username",
+                                    "userName",
                                     "email",
                                 ],
                                 include: [{
@@ -315,7 +315,7 @@ module.exports = {
                                 model: appman.db.Users,
                                 as: 'user',
                                 attributes: [
-                                    "username",
+                                    "userName",
                                     "email",
                                 ],
                                 include: [{

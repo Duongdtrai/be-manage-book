@@ -32,7 +32,7 @@ module.exports = {
                         model: appman.db.Users,
                         as: "user",
                         attributes: [
-                            "username",
+                            "userName",
                             "email",
                             "gender",
                             "age",
@@ -55,6 +55,7 @@ module.exports = {
                         model: appman.db.Books,
                         as: "book",
                         attributes: [
+                            "id",
                             "title",
                             "description",
                             "price",
@@ -102,7 +103,7 @@ module.exports = {
                         model: appman.db.Users,
                         as: "user",
                         attributes: [
-                            "username",
+                            "userName",
                             "email",
                             "gender",
                             "age",
@@ -125,6 +126,7 @@ module.exports = {
                         model: appman.db.Books,
                         as: "book",
                         attributes: [
+                            "id",
                             "title",
                             "description",
                             "price",
@@ -175,7 +177,7 @@ module.exports = {
                         model: appman.db.Users,
                         as: "user",
                         attributes: [
-                            "username",
+                            "userName",
                             "email",
                             "gender",
                             "age",
@@ -198,6 +200,7 @@ module.exports = {
                         model: appman.db.Books,
                         as: "book",
                         attributes: [
+                            "id",
                             "title",
                             "description",
                             "price",
@@ -235,9 +238,10 @@ module.exports = {
     createNewCartForLP: async (req, res) => {
         const transaction = await appman.db.sequelize.transaction();
         try {
+            const userId = req.user.id;
             const {
-                userId,
                 bookId,
+                fullName,
                 status,
                 note,
                 address,
@@ -263,6 +267,7 @@ module.exports = {
             const newCart = await appman.db.Carts.create({
                 userId,
                 bookId,
+                fullName,
                 status,
                 quantity,
                 note,
@@ -318,7 +323,8 @@ module.exports = {
                 note,
                 address,
                 numberPhone,
-                quantity
+                quantity,
+                fullName,
             } = req.body
             const cartExits = await appman.db.Carts.findOne({
                 where: {
@@ -332,6 +338,7 @@ module.exports = {
                     address,
                     numberPhone,
                     quantity,
+                    fullName,
                     userId,
                     bookId,
                 }, {
@@ -353,12 +360,13 @@ module.exports = {
         const transaction = await appman.db.sequelize.transaction();
         try {
             const { cartId } = req.params
+            const userId = req.user.id
             const {
-                userId,
                 bookId,
                 status,
                 note,
                 address,
+                fullName,
                 numberPhone,
                 quantity
             } = req.body
@@ -373,6 +381,7 @@ module.exports = {
                     bookId,
                     status,
                     note,
+                    fullName,
                     address,
                     numberPhone,
                     quantity

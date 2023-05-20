@@ -101,7 +101,7 @@ module.exports = {
                 age,
                 address,
                 numberPhone,
-                username
+                userName
             } = req.body;
             const userExist = await appman.db.Users.findOne({
                 where: {
@@ -123,7 +123,7 @@ module.exports = {
                 }
                 const imageIdCreate = imageCreate.id || null
                 const passSecurity = await userFunc.genPassword(password)
-                newUser = await userFunc.register({ imageIdCreate, email, passSecurity, gender, age, address, numberPhone, username }, transaction)
+                newUser = await userFunc.register({ imageIdCreate, email, passSecurity, gender, age, address, numberPhone, userName }, transaction)
                 const token = jwt.sign({ userId: newUser.id, role: 1 }, process.env.SECRET_OR_KEY, { expiresIn: '7d' })
                 const refreshToken = jwt.sign({ userId: newUser.id, role: 1 }, process.env.SECRET_OR_KEY, { expiresIn: '7d' })
                 await appman.db.Tokens.create({
@@ -153,7 +153,7 @@ module.exports = {
         try {
             const userId = req.user.id
             const {
-                username,
+                userName,
                 gender,
                 age,
                 address,
@@ -183,7 +183,7 @@ module.exports = {
             }
             const dataEdit = await appman.db.Users.update({
                 imageId: req.user.imageId || newImage.id,
-                username,
+                userName,
                 gender,
                 age,
                 address,
@@ -299,7 +299,7 @@ module.exports = {
                 offset,
                 limit,
                 distinct: true,
-                attributes: ['email', 'username', 'gender', 'age', 'address', 'numberPhone'],
+                attributes: ['email', 'userName', 'gender', 'age', 'address', 'numberPhone'],
                 include: [
                     {
                         model: appman.db.Avatars,
@@ -314,7 +314,7 @@ module.exports = {
 
             if (freeWord) {
                 operator.where = {
-                    username: {
+                    userName: {
                         [Op.like]: "%" + freeWord + "%"
                     }
                 }
@@ -331,7 +331,7 @@ module.exports = {
         try {
             const userId = req.user['dataValues'].id
             const userExist = await appman.db.Users.findOne({
-                attributes: ['email', 'username', 'gender', 'age', 'address', 'numberPhone'],
+                attributes: ['email', 'userName', 'gender', 'age', 'address', 'numberPhone'],
                 include: [
                     // {
                     //     model: appman.db.Books,
@@ -399,7 +399,7 @@ module.exports = {
         try {
             const userId = req.user.id;
             const userExist = await appman.db.Users.findOne({
-                attributes: ['email', 'username', 'gender', 'age', 'address', 'numberPhone'],
+                attributes: ['email', 'userName', 'gender', 'age', 'address', 'numberPhone'],
                 include: [
                     // {
                     //     model: appman.db.Books,

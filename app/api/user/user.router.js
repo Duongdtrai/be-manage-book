@@ -116,10 +116,10 @@ router.get('/detail', passport.authenticate('jwt', { session: false }), checkIsI
  *                      type: "string"
  *                      description: "cloudId"
  *                      example: "ImageUserWeb/qkgmfxmo6yzmloma97we"
- *            username:
+ *            userName:
  *              type: "string"
  *              example: "tungduong"
- *              description: "username"
+ *              description: "userName"
  *            gender:
  *              type: string
  *              example: null
@@ -300,7 +300,7 @@ router.post('/loginLP', userService.loginForLP)
  *                      type: "string"
  *                      description: "cloudId"
  *                      example: "ImageUserWeb/qkgmfxmo6yzmloma97we"
- *            username:
+ *            userName:
  *              type: "string"
  *              example: "PhamTungDuong"
  *              description: "userName"
