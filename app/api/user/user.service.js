@@ -2,18 +2,20 @@
 
 
 const userFunc = require("./user.func");
+const {validateInputCreateUser, validateInputLoginUser, validateInputEditUser} = require("./user.validation");
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { SYSTEM_ADMIN } = require('../../core/database/constant/user')
 const cloudinaryV2 = require("../../core/cloudinary/cloudinary.service")
 const status = require('./user.response-status');
-const { Op } = require("sequelize");
+const { Op, literal } = require("sequelize");
 
 module.exports = {
     loginForCms: async (req, res) => {
         const transaction = await appman.db.sequelize.transaction();
         try {
             const { email, password } = req.body;
+            await validateInputLoginUser.validateAsync(req.body)
             const userExist = await appman.db.Users.findOne({
                 where: {
                     email
@@ -28,7 +30,9 @@ module.exports = {
                     role: userExist.role
                 });
             } else {
-                throw new Error("Không có account này hoặc sai mật khẩu")
+                return appman.response.apiError(res, {
+                    message: "Không có account này hoặc sai mật khẩu"
+                })
             }
         } catch (error) {
             await transaction.rollback()
@@ -39,6 +43,7 @@ module.exports = {
     loginForLP: async (req, res) => {
         try {
             const { email, password } = req.body;
+            await validateInputLoginUser.validateAsync(req.body)
             const userExist = await appman.db.Users.findOne({
                 where: {
                     email,
@@ -54,7 +59,9 @@ module.exports = {
                     role: userExist.role
                 });
             } else {
-                throw new Error("Không có account này hoặc sai mật khẩu")
+                return appman.response.apiError(res, {
+                    message: "Không có account này hoặc sai mật khẩu"
+                })
             }
         } catch (error) {
             return appman.response.systemError(res, error);
@@ -103,6 +110,7 @@ module.exports = {
                 numberPhone,
                 userName
             } = req.body;
+            await validateInputCreateUser.validateAsync(req.body);
             const userExist = await appman.db.Users.findOne({
                 where: {
                     email: email,
@@ -110,7 +118,9 @@ module.exports = {
             });
             var newUser = null
             if (userExist) {
-                throw new Error("Trùng email")
+                return appman.response.apiError(res, {
+                    message: "Trùng email"
+                })
             } else {
                 let imageCreate = null
                 if (image && image.image && image.cloudId) {
@@ -121,9 +131,9 @@ module.exports = {
                         transaction
                     })
                 }
-                const imageIdCreate = imageCreate.id || null
+                const imageId = imageCreate?.id || null
                 const passSecurity = await userFunc.genPassword(password)
-                newUser = await userFunc.register({ imageIdCreate, email, passSecurity, gender, age, address, numberPhone, userName }, transaction)
+                newUser = await userFunc.register({ imageId, email, passSecurity, gender, age, address, numberPhone, userName }, transaction)
                 const token = jwt.sign({ userId: newUser.id, role: 1 }, process.env.SECRET_OR_KEY, { expiresIn: '7d' })
                 const refreshToken = jwt.sign({ userId: newUser.id, role: 1 }, process.env.SECRET_OR_KEY, { expiresIn: '7d' })
                 await appman.db.Tokens.create({
@@ -160,6 +170,7 @@ module.exports = {
                 numberPhone,
                 image
             } = req.body;
+            await validateInputEditUser.validateAsync(req.body);
             let newImage = null
             if (image && image.image && image.cloudId) {
                 if (req.user.imageId) {
@@ -183,7 +194,7 @@ module.exports = {
             }
             const dataEdit = await appman.db.Users.update({
                 imageId: req.user.imageId || newImage.id,
-                userName,
+                username: userName,
                 gender,
                 age,
                 address,
@@ -241,10 +252,11 @@ module.exports = {
                         transaction
                     }
                 )
-
             }
             else {
-                throw new Error("Password không đúng")
+                return appman.response.apiError(res, {
+                    message: "Password không đúng"
+                })
             }
             await transaction.commit();
             return appman.response.apiSuccess(res, user);
@@ -277,7 +289,9 @@ module.exports = {
                 return appman.response.apiSuccess(res, user);
             }
             else {
-                throw new Error("Password không đúng")
+                return appman.response.apiError(res, {
+                    message: "Password không đúng"
+                })
             }
         } catch (error) {
             await transaction.rollback();
@@ -385,7 +399,9 @@ module.exports = {
                 }
             });
             if (!userExist) {
-                throw new Error("Không tìm thấy user nào")
+                return appman.response.apiError(res, {
+                    message: "Không tìm thấy user nào"
+                })
             }
             await transaction.commit();
             return appman.response.apiSuccess(res, userExist);
@@ -399,52 +415,37 @@ module.exports = {
         try {
             const userId = req.user.id;
             const userExist = await appman.db.Users.findOne({
-                attributes: ['email', 'userName', 'gender', 'age', 'address', 'numberPhone'],
+                attributes: [
+                    'email',
+                    'userName',
+                    'gender',
+                    'age',
+                    'address',
+                    'numberPhone',
+                    [literal('(SELECT COUNT(*) FROM Carts WHERE Carts.userId = Users.id AND Carts.status LIKE "%in-cart%")'), 'countCart']
+                ],
                 include: [
-                    // {
-                    //     model: appman.db.Books,
-                    //     as: "bookCart",
-                    //     attributes: ["title", "description", "price", "numberPage", "releaseDate"],
-                    //     include: [
-                    //         {
-                    //             model: appman.db.Avatars,
-                    //             as: 'avatar_book',
-                    //             attributes: ['image', 'cloudId']
-                    //         },
-                    //         {
-                    //             model: appman.db.Categories,
-                    //             as: 'category_book',
-                    //             attributes: ['title'],
-                    //             include: [
-                    //                 {
-                    //                     model: appman.db.Avatars,
-                    //                     as: 'avatar_category',
-                    //                     attributes: ['image', 'cloudId']
-                    //                 }
-                    //             ]
-                    //         },
-                    //         {
-                    //             model: appman.db.Authors,
-                    //             as: 'author_book',
-                    //             attributes: ['fullName', 'description', 'birthday', 'address', 'gender'],
-                    //             include: [
-                    //                 {
-                    //                     model: appman.db.Avatars,
-                    //                     as: 'avatar',
-                    //                     attributes: ['image', 'cloudId']
-                    //                 }
-                    //             ]
-                    //         }
-                    //     ],
-                    //     through: {
-                    //         model: appman.db.Carts,
-                    //         attributes: ["status", "note", "address", "numberPhone"],
-                    //     }
-                    // },
                     {
                         model: appman.db.Avatars,
                         as: 'avatar_user',
                         attributes: ["image", "cloudId"]
+                    },
+                    {
+                        model: appman.db.Carts,
+                        as: "cart",
+                        attributes: [
+                            "id",
+                            "status",
+                            "address",
+                            "quantity",
+                            "createdAt"
+                        ],
+                        where: {
+                            status: {
+                                [Op.like]: "%" + "done" + "%"
+                            }
+                        },
+                        required: false // không ảnh hưởng đến quá trình ở ngoài
                     }
                 ],
                 where: {
@@ -453,7 +454,9 @@ module.exports = {
                 }
             });
             if (!userExist) {
-                throw new Error("Không tìm thấy user nào")
+                return appman.response.apiError(res, {
+                    message: "Không tìm thấy user"
+                })
             }
             await transaction.commit();
             return appman.response.apiSuccess(res, userExist);

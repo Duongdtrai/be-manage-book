@@ -1,4 +1,4 @@
-
+const { validateInputCreateComment } = require("./comment.validation")
 const status = require("./comment.response-status");
 
 module.exports = {
@@ -11,7 +11,7 @@ module.exports = {
                 comment,
                 star
             } = req.body
-            
+            await validateInputCreateComment.validateAsync(req.body)
             const bookExist = await appman.db.Books.findOne({
                 where: {
                     id: bookId,
@@ -20,7 +20,6 @@ module.exports = {
             if (!bookExist) {
                 return appman.response.resApiError(res, 403, status[401]);
             }
-
             const commentNew = await appman.db.BookComments.create({
                 userId,
                 bookId,

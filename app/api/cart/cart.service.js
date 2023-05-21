@@ -1,4 +1,5 @@
 
+const { validateInputCreateCart } = require("./cart.validation")
 const status = require("./cart.response-status");
 const sequelize = require("sequelize");
 
@@ -25,7 +26,8 @@ module.exports = {
                     "note",
                     "address",
                     "numberPhone",
-                    "quantity"
+                    "quantity",
+                    "fullName"
                 ],
                 include: [
                     {
@@ -96,7 +98,8 @@ module.exports = {
                     "note",
                     "address",
                     "numberPhone",
-                    "quantity"
+                    "quantity",
+                    "fullName"
                 ],
                 include: [
                     {
@@ -248,6 +251,7 @@ module.exports = {
                 numberPhone,
                 quantity
             } = req.body
+            await validateInputCreateCart.validateAsync(req.body)
             const userExists = await appman.db.Users.findOne({
                 where: {
                     id: userId,
@@ -316,8 +320,8 @@ module.exports = {
         const transaction = await appman.db.sequelize.transaction();
         try {
             const { cartId } = req.params
+            const userId = req.user.id
             const {
-                userId,
                 bookId,
                 status,
                 note,
@@ -326,6 +330,7 @@ module.exports = {
                 quantity,
                 fullName,
             } = req.body
+            await validateInputCreateCart.validateAsync(req.body)
             const cartExits = await appman.db.Carts.findOne({
                 where: {
                     id: cartId,
@@ -370,6 +375,7 @@ module.exports = {
                 numberPhone,
                 quantity
             } = req.body
+            await validateInputCreateCart.validateAsync(req.body)
             const cartExits = await appman.db.Carts.findOne({
                 where: {
                     id: cartId,

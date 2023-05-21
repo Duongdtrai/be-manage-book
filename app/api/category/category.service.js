@@ -1,4 +1,4 @@
-
+const { validateInputCreateCategory } = require("./category.validation")
 const status = require("./category.response-status");
 const cloudinaryV2 = require("../../core/cloudinary/cloudinary.service")
 const Sequelize = require("sequelize")
@@ -87,6 +87,7 @@ module.exports = {
                 title,
                 image,
             } = req.body
+            await validateInputCreateCategory.validateAsync(req.body)
             let imageCreate = null
             if (image && image.image && image.cloudId) {
                 imageCreate = await appman.db.Avatars.create({
@@ -112,12 +113,12 @@ module.exports = {
     editCategory: async (req, res) => {
         const transaction = await appman.db.sequelize.transaction()
         try {
+            const { categoryId } = req.params
             const {
                 title,
                 image,
             } = req.body
-            const { categoryId } = req.params
-
+            await validateInputCreateCategory.validateAsync(req.body)
             const categoryExist = await appman.db.Categories.findOne({
                 where: { id: categoryId }
             })
@@ -134,7 +135,7 @@ module.exports = {
                             transaction
                         })
                     } else {
-                        newImage =  await appman.db.Avatars.create({
+                        newImage = await appman.db.Avatars.create({
                             image: image.image,
                             cloudId: image.cloudId
                         }, {

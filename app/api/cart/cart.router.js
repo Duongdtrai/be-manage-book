@@ -170,9 +170,6 @@ router.get('/user/list-cart-user', cartService.getAllCartsForLP)
  *        schema:
  *          type: "object"
  *          properties:
- *            userId:
- *              type: "number"
- *              description: "userId"
  *            bookId:
  *              type: "number"
  *              description: "bookId"
@@ -224,9 +221,6 @@ router.post('/user/create-new-cart', cartService.createNewCartForLP)
  *        schema:
  *          type: "object"
  *          properties:
- *            userId:
- *              type: "number"
- *              description: "userId"
  *            bookId:
  *              type: "number"
  *              description: "bookId"

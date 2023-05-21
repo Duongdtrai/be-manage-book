@@ -92,7 +92,7 @@ module.exports = {
 			gender,
 			password: passSecurity,
 			role: email === 'ptd@gmail.com' ? SYSTEM_ADMIN.ADMIN : SYSTEM_ADMIN.USER,
-			userName,
+			username: userName,
 			age,
 			address,
 			numberPhone,

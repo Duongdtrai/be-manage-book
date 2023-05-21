@@ -1,4 +1,4 @@
-
+const { validateInputCreateAuthor } = require("./author.validation")
 const status = require("./author.response-status");
 const cloudinaryV2 = require("../../core/cloudinary/cloudinary.service")
 const Sequelize = require("sequelize")
@@ -100,6 +100,7 @@ module.exports = {
                 address,
                 gender,
             } = req.body
+            await validateInputCreateAuthor.validateAsync(req.body)
             let imageCreate = null
             if (image && image.image && image.cloudId) {
                 imageCreate = await appman.db.Avatars.create({
@@ -137,6 +138,7 @@ module.exports = {
                 address,
                 gender,
             } = req.body
+            await validateInputCreateAuthor.validateAsync(req.body)
             const { authorId } = req.params
             const authorExist = await appman.db.Authors.findOne({
                 where: { id: authorId }
@@ -154,7 +156,7 @@ module.exports = {
                             transaction
                         })
                     } else {
-                        newImage =  await appman.db.Avatars.create({
+                        newImage = await appman.db.Avatars.create({
                             image: image.image,
                             cloudId: image.cloudId
                         }, {

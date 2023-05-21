@@ -1,3 +1,4 @@
+const { validateInputCreateBook } = require("./book.validation")
 const status = require("./book.response-status");
 const cloudinaryV2 = require("../../core/cloudinary/cloudinary.service")
 const Sequelize = require("sequelize")
@@ -76,7 +77,7 @@ module.exports = {
                 operator.where.category = category
             }
             if (author) {
-                operator.where.author = category
+                operator.where.author = author
             }
             if (freeWord) {
                 operator.where.freeWord = {
@@ -84,7 +85,19 @@ module.exports = {
                 }
             }
             const listBooks = await appman.db.Books.findAndCountAll(operator)
-            return appman.response.apiSuccess(res, listBooks);
+            const listAll = [];
+
+            for (let index = 0; index < listBooks.rows.length; index++) {
+                const book = listBooks.rows[index]['dataValues'];
+                const haveBuy = await appman.db.Carts.count({
+                    where: {
+                        bookId: book.id,
+                    },
+                });
+                book.haveBuy = haveBuy;
+                listAll.push(book);
+            }
+            return appman.response.apiSuccess(res, listAll);
         } catch (error) {
             return appman.response.systemError(res, error)
         }
@@ -376,6 +389,7 @@ module.exports = {
                 category,
                 releaseDate
             } = req.body
+            await validateInputCreateBook.validateAsync(req.body)
             let imageCreate = null
             if (image && image.image && image.cloudId) {
                 imageCreate = await appman.db.Avatars.create({
@@ -390,16 +404,20 @@ module.exports = {
                     id: author
                 }
             })
-            const categoryExist = await appman.db.Authors.findOne({
+            const categoryExist = await appman.db.Categories.findOne({
                 where: {
                     id: category
                 }
             })
             if (!authorExist) {
-                throw new Error("Không tìm thấy author")
+                return appman.response.apiError(res, {
+                    message: "Không tìm thấy author"
+                })
             }
             if (!categoryExist) {
-                throw new Error("Không tìm thấy category")
+                return appman.response.apiError(res, {
+                    message: "Không tìm thấy category"
+                })
             }
             const imageIdCreate = imageCreate.id || null
             const book = await appman.db.Books.create({
@@ -417,6 +435,7 @@ module.exports = {
             await transaction.commit();
             return appman.response.apiSuccess(res, book);
         } catch (error) {
+            console.log("")
             await transaction.rollback();
             return appman.response.systemError(res, error)
         }
@@ -434,6 +453,7 @@ module.exports = {
                 category,
                 releaseDate
             } = req.body
+            await validateInputCreateBook.validateAsync(req.body)
             const { bookId } = req.params
             const bookExist = await appman.db.Books.findOne({
                 where: { id: bookId }
@@ -469,10 +489,14 @@ module.exports = {
                     }
                 })
                 if (!authorExist) {
-                    throw new Error("Không tìm thấy author")
+                    return appman.response.apiError(res, {
+                        message: "Không tìm thấy author"
+                    })
                 }
                 if (!categoryExist) {
-                    throw new Error("Không tìm thấy category")
+                    return appman.response.apiError(res, {
+                        message: "Không tìm thấy category"
+                    })
                 }
                 const book = await appman.db.Books.update({
                     imageId: bookExist.imageId || newImage.id,
