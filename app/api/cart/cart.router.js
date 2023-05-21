@@ -71,32 +71,10 @@ router.get('/:cartId', cartService.getCartsDetails)
  *        schema:
  *          type: "object"
  *          properties:
- *            userId:
- *              type: "number"
- *              description: "userId"
- *            bookId:
- *              type: "number"
- *              description: "bookId"
  *            status:
  *              type: "string"
  *              description: "status"
  *              example: done   
- *            note:
- *              type: "string"
- *              description: "note" 
- *              example: good  
- *            address:
- *              type: "string"
- *              description: "address" 
- *              example: ThanhHoa 
- *            numberPhone:
- *              type: "string"
- *              description: "quantity" 
- *              example: 0123456789  
- *            quantity:
- *              type: "number"
- *              description: "quantity" 
- *              example: 1   
  *     responses:
  *       200:
  *         description: "OK"

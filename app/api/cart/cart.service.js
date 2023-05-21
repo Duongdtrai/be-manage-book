@@ -320,15 +320,8 @@ module.exports = {
         const transaction = await appman.db.sequelize.transaction();
         try {
             const { cartId } = req.params
-            const userId = req.user.id
             const {
-                bookId,
                 status,
-                note,
-                address,
-                numberPhone,
-                quantity,
-                fullName,
             } = req.body
             await validateInputCreateCart.validateAsync(req.body)
             const cartExits = await appman.db.Carts.findOne({
@@ -339,13 +332,6 @@ module.exports = {
             if (cartExits) {
                 const cartUpdate = await appman.db.Carts.update({
                     status,
-                    note,
-                    address,
-                    numberPhone,
-                    quantity,
-                    fullName,
-                    userId,
-                    bookId,
                 }, {
                     where: {
                         id: cartId,
