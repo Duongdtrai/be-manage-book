@@ -7,9 +7,9 @@ const validateInputCreateCart = Joi.object({
     bookId: Joi.number().required(),
     status: Joi.string().valid('in-cart', 'order-success', 'delivery', 'success').required(),
     note: Joi.string().allow(null, ""),
-    address: Joi.string().required(),
-    numberPhone: Joi.string().required().length(10),
-    quantity: Joi.number().required(),
+    address: Joi.string().allow(null, ""),
+    numberPhone: Joi.string().allow(null, "").length(10),
+    quantity: Joi.number().allow(null, ""),
 });
 
 module.exports = {

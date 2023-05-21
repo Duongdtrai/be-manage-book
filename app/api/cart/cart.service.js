@@ -260,7 +260,7 @@ module.exports = {
             if (!userExists) {
                 return appman.response.resApiError(res, 403, status[400]);
             }
-            const bookExists = await appman.db.Users.findAll({
+            const bookExists = await appman.db.Books.findAll({
                 where: {
                     id: bookId,
                 }
