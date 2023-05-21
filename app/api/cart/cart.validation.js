@@ -10,9 +10,12 @@ const validateInputCreateCart = Joi.object({
     address: Joi.string().allow(null, ""),
     numberPhone: Joi.string().allow(null, "").length(10),
     quantity: Joi.number().allow(null, ""),
+    fullName: Joi.string().allow(null, "")
 });
 
+const validateStatus = Joi.string().valid('in-cart', 'order-success', 'delivery', 'success').required();
 module.exports = {
-    validateInputCreateCart
+    validateInputCreateCart,
+    validateStatus
 };
 

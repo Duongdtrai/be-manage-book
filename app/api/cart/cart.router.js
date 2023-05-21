@@ -154,7 +154,11 @@ router.get('/user/list-cart-user', cartService.getAllCartsForLP)
  *            status:
  *              type: "string"
  *              description: "status"
- *              example: done   
+ *              example: in-cart 
+ *            fullName:
+ *              type: "string"
+ *              description: "fullName"
+ *              example: "DuongPT"   
  *            note:
  *              type: "string"
  *              description: "note" 
@@ -205,11 +209,15 @@ router.post('/user/create-new-cart', cartService.createNewCartForLP)
  *            status:
  *              type: "string"
  *              description: "status"
- *              example: done   
+ *              example: in-cart
+ *            fullName:
+ *              type: "string"
+ *              description: "fullName"
+ *              example: DuongPT  
  *            note:
  *              type: "string"
  *              description: "note" 
- *              example: good  
+ *              example: good2  
  *            address:
  *              type: "string"
  *              description: "address" 
@@ -221,7 +229,7 @@ router.post('/user/create-new-cart', cartService.createNewCartForLP)
  *            quantity:
  *              type: "number"
  *              description: "quantity" 
- *              example: 1       
+ *              example: 1  
  *     responses:
  *       200:
  *         description: "OK"

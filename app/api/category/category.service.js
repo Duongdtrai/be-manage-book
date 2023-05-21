@@ -19,7 +19,6 @@ module.exports = {
             const operator = {
                 limit,
                 offset,
-                distinct: true,
                 attributes: [
                     "id",
                     "title",
@@ -53,7 +52,6 @@ module.exports = {
         try {
             const { categoryId } = req.params
             const operator = {
-                distinct: true,
                 attributes: [
                     "id",
                     "title",
@@ -89,7 +87,7 @@ module.exports = {
             } = req.body
             await validateInputCreateCategory.validateAsync(req.body)
             let imageCreate = null
-            if (image && image.image && image.cloudId) {
+            if (image && image?.image && image?.cloudId) {
                 imageCreate = await appman.db.Avatars.create({
                     image: image.image,
                     cloudId: image.cloudId
@@ -99,7 +97,7 @@ module.exports = {
             }
             const category = await appman.db.Categories.create({
                 title,
-                imageId: imageCreate.id || null,
+                imageId: imageCreate?.id || null,
             }, {
                 transaction
             })
@@ -143,12 +141,9 @@ module.exports = {
                         })
                     }
                 }
-                else {
-                    return appman.response.resApiError(res, 403, status[400]);
-                }
                 const category = await appman.db.Categories.update({
                     title,
-                    imageId: categoryExist.imageId || newImage.id
+                    imageId: categoryExist?.imageId || newImage?.id
                 }, {
                     where: {
                         id: categoryId
@@ -157,6 +152,8 @@ module.exports = {
                 })
                 await transaction.commit();
                 return appman.response.apiSuccess(res, category);
+            } else {
+                return appman.response.resApiError(res, 403, status[400]);
             }
         } catch (error) {
             await transaction.rollback();
@@ -218,7 +215,6 @@ module.exports = {
     getAllCategoryForLP: async (req, res) => {
         try {
             const operator = {
-                distinct: true,
                 attributes: [
                     "id",
                     "title",
@@ -242,7 +238,6 @@ module.exports = {
         try {
             const { categoryId } = req.params
             const operator = {
-                distinct: true,
                 attributes: [
                     "id",
                     "title",

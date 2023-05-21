@@ -2,7 +2,7 @@
 
 
 const userFunc = require("./user.func");
-const {validateInputCreateUser, validateInputLoginUser, validateInputEditUser} = require("./user.validation");
+const { validateInputCreateUser, validateInputLoginUser, validateInputEditUser } = require("./user.validation");
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { SYSTEM_ADMIN } = require('../../core/database/constant/user')
@@ -312,8 +312,14 @@ module.exports = {
             const operator = {
                 offset,
                 limit,
-                distinct: true,
-                attributes: ['email', 'userName', 'gender', 'age', 'address', 'numberPhone'],
+                attributes: [
+                    'email', 
+                    'userName', 
+                    'gender', 
+                    'age', 
+                    'address', 
+                    'numberPhone'
+                ],
                 include: [
                     {
                         model: appman.db.Avatars,
@@ -422,7 +428,6 @@ module.exports = {
                     'age',
                     'address',
                     'numberPhone',
-                    [literal('(SELECT COUNT(*) FROM Carts WHERE Carts.userId = Users.id AND Carts.status LIKE "%in-cart%")'), 'countCart']
                 ],
                 include: [
                     {
@@ -458,6 +463,17 @@ module.exports = {
                     message: "Không tìm thấy user"
                 })
             }
+            
+            const countCart = await appman.db.Carts.count({
+                where: {
+                    userId: userId,
+                    status: {
+                        [Op.like]: "%" + "in-cart" + "%"
+                    }
+                }
+            })
+            userExist['dataValues'].countCart = countCart
+            console.log("userExist", userExist)
             await transaction.commit();
             return appman.response.apiSuccess(res, userExist);
         } catch (error) {

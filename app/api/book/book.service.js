@@ -117,7 +117,6 @@ module.exports = {
             const operator = {
                 limit,
                 offset,
-                distinct: true,
                 attributes: [
                     "id",
                     "title",
@@ -260,7 +259,14 @@ module.exports = {
                     {
                         model: appman.db.Authors,
                         as: "author_book",
-                        attributes: ["id", "fullName", "description", "birthday", "address", "gender"],
+                        attributes: [
+                            "id",
+                            "fullName",
+                            "description",
+                            "birthday",
+                            "address",
+                            "gender"
+                        ],
                         include: [
                             {
                                 model: appman.db.Avatars,
@@ -344,7 +350,14 @@ module.exports = {
                     {
                         model: appman.db.Authors,
                         as: "author_book",
-                        attributes: ["id", "fullName", "description", "birthday", "address", "gender"],
+                        attributes: [
+                            "id",
+                            "fullName",
+                            "description",
+                            "birthday",
+                            "address",
+                            "gender"
+                        ],
                         include: [
                             {
                                 model: appman.db.Avatars,

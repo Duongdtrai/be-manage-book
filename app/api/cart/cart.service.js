@@ -1,5 +1,5 @@
 
-const { validateInputCreateCart } = require("./cart.validation")
+const { validateInputCreateCart, validateStatus } = require("./cart.validation")
 const status = require("./cart.response-status");
 const sequelize = require("sequelize");
 
@@ -19,7 +19,6 @@ module.exports = {
             const operator = {
                 limit,
                 offset,
-                distinct: true,
                 attributes: [
                     "id",
                     "status",
@@ -91,7 +90,6 @@ module.exports = {
             const { statusCart } = req.query;
             const userId = req.user.id
             const operator = {
-                distinct: true,
                 attributes: [
                     "id",
                     "status",
@@ -323,7 +321,7 @@ module.exports = {
             const {
                 status,
             } = req.body
-            await validateInputCreateCart.validateAsync(req.body)
+            await validateStatus.validateAsync(status)
             const cartExits = await appman.db.Carts.findOne({
                 where: {
                     id: cartId,

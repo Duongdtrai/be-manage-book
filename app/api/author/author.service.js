@@ -19,7 +19,6 @@ module.exports = {
             const operator = {
                 limit,
                 offset,
-                distinct: true,
                 attributes: [
                     "id",
                     "fullName",
@@ -35,7 +34,11 @@ module.exports = {
                     {
                         model: appman.db.Avatars,
                         as: 'avatar',
-                        attributes: ["id", "image", "cloudId"],
+                        attributes: [
+                            "id",
+                            "image",
+                            "cloudId"
+                        ],
                     },
                 ],
                 where: {},
@@ -58,7 +61,6 @@ module.exports = {
         try {
             const { authorId } = req.params
             const operator = {
-                distinct: true,
                 attributes: [
                     "id",
                     "fullName",
@@ -76,7 +78,11 @@ module.exports = {
                     {
                         model: appman.db.Avatars,
                         as: 'avatar',
-                        attributes: ["id", "image", "cloudId"],
+                        attributes: [
+                            "id",
+                            "image",
+                            "cloudId"
+                        ],
                     }
                 ]
             }
@@ -254,7 +260,6 @@ module.exports = {
             const operator = {
                 limit,
                 offset,
-                distinct: true,
                 attributes: [
                     "id",
                     "fullName",
@@ -280,7 +285,6 @@ module.exports = {
             const operator = {
                 limit,
                 offset,
-                distinct: true,
                 attributes: [
                     "id",
                     "fullName",
