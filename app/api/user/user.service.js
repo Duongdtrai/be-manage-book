@@ -442,7 +442,7 @@ module.exports = {
                         ],
                         where: {
                             status: {
-                                [Op.like]: "%" + "done" + "%"
+                                [Op.like]: "%" + "in-cart" + "%"
                             }
                         },
                         required: false // không ảnh hưởng đến quá trình ở ngoài

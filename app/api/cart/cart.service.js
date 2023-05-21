@@ -32,7 +32,7 @@ module.exports = {
                 include: [
                     {
                         model: appman.db.Users,
-                        as: "user",
+                        as: "cart",
                         attributes: [
                             "userName",
                             "email",
@@ -104,7 +104,7 @@ module.exports = {
                 include: [
                     {
                         model: appman.db.Users,
-                        as: "user",
+                        as: "cart",
                         attributes: [
                             "userName",
                             "email",
@@ -178,7 +178,7 @@ module.exports = {
                 include: [
                     {
                         model: appman.db.Users,
-                        as: "user",
+                        as: "cart",
                         attributes: [
                             "userName",
                             "email",
