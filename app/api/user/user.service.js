@@ -313,11 +313,11 @@ module.exports = {
                 offset,
                 limit,
                 attributes: [
-                    'email', 
-                    'userName', 
-                    'gender', 
-                    'age', 
-                    'address', 
+                    'email',
+                    'userName',
+                    'gender',
+                    'age',
+                    'address',
                     'numberPhone'
                 ],
                 include: [
@@ -333,10 +333,8 @@ module.exports = {
             }
 
             if (freeWord) {
-                operator.where = {
-                    userName: {
-                        [Op.like]: "%" + freeWord + "%"
-                    }
+                operator.where.userName = {
+                    [Op.like]: "%" + freeWord + "%"
                 }
             }
             const userExist = await appman.db.Users.findAndCountAll(operator);
@@ -463,7 +461,7 @@ module.exports = {
                     message: "Không tìm thấy user"
                 })
             }
-            
+
             const countCart = await appman.db.Carts.count({
                 where: {
                     userId: userId,

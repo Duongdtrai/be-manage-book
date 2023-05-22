@@ -1,7 +1,7 @@
 
 const { validateInputCreateCart, validateStatus } = require("./cart.validation")
 const status = require("./cart.response-status");
-const sequelize = require("sequelize");
+const { Op } = require("sequelize");
 
 
 module.exports = {
@@ -77,6 +77,11 @@ module.exports = {
                         ]
                     }
                 ],
+                where: {
+                    status: {
+                        [Op.not]: "in-cart"
+                    }
+                },
                 order: [["createdAt", "DESC"]],
             }
             const listCarts = await appman.db.Carts.findAndCountAll(operator)
@@ -155,6 +160,11 @@ module.exports = {
             }
             if (statusCart === "in-cart") {
                 operator.where.status = statusCart
+            }
+            else {
+                operator.where.status = {
+                    [Op.not]: "in-cart"
+                }
             }
             const cartExits = await appman.db.Carts.findAndCountAll(operator)
             return appman.response.apiSuccess(res, cartExits);
