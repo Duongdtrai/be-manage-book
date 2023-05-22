@@ -495,7 +495,7 @@ module.exports = {
                         id: author
                     }
                 })
-                const categoryExist = await appman.db.Authors.findOne({
+                const categoryExist = await appman.db.Categories.findOne({
                     where: {
                         id: category
                     }
@@ -511,7 +511,7 @@ module.exports = {
                     })
                 }
                 const book = await appman.db.Books.update({
-                    imageId: bookExist.imageId || newImage.id,
+                    imageId: bookExist?.imageId || newImage?.id,
                     title,
                     description,
                     price,
