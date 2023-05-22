@@ -174,12 +174,12 @@ module.exports = {
             if (!categoryExist) {
                 return appman.response.resApiError(res, 403, status[400]);
             }
-            const categoryBookExist = await appman.db.Books.findAll({
+            const categoryBookExist = await appman.db.Books.findOne({
                 where: {
                     category: categoryId
                 }
             })
-            if (categoryBookExist && categoryBookExist.length > 0) {
+            if (categoryBookExist) {
                 return appman.response.resApiError(res, 403, status[401]);
             }
             const avatarCategoryExist = await appman.db.Avatars.findOne({

@@ -118,7 +118,7 @@ module.exports = {
             }
             const author = await appman.db.Authors.create({
                 fullName,
-                imageId: imageCreate.id || null,
+                imageId: imageCreate?.id || null,
                 description,
                 birthday,
                 address,
@@ -211,10 +211,10 @@ module.exports = {
             }
             const authorBookExist = await appman.db.Books.findOne({
                 where: {
-                    id: authorId
+                    author: authorId
                 }
             })
-            if (authorBookExist && authorBookExist.length > 0) {
+            if (authorBookExist) {
                 return appman.response.resApiError(res, 403, status[401]);
             }
             const avatarAuthorExist = await appman.db.Avatars.findOne({

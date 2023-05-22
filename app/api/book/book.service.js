@@ -432,9 +432,8 @@ module.exports = {
                     message: "Không tìm thấy category"
                 })
             }
-            const imageIdCreate = imageCreate.id || null
             const book = await appman.db.Books.create({
-                imageId: imageIdCreate,
+                imageId: imageCreate?.id || null,
                 title,
                 description,
                 price,
