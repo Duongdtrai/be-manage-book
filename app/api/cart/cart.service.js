@@ -6,7 +6,7 @@ const { Op } = require("sequelize");
 
 module.exports = {
     getAllCarts: async (req, res) => {
-        let { page, size } = req.query
+        let { page, size, freeWord } = req.query
         let offset = 0
         let limit = 10
         if (page && size) {
@@ -83,6 +83,11 @@ module.exports = {
                     }
                 },
                 order: [["createdAt", "DESC"]],
+            }
+            if (freeWord) {
+                operator.where.fullName = {
+                    [Op.like]: "%" + freeWord + "%"
+                }
             }
             const listCarts = await appman.db.Carts.findAndCountAll(operator)
             return appman.response.apiSuccess(res, listCarts);
