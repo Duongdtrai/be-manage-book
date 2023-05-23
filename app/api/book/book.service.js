@@ -97,7 +97,7 @@ module.exports = {
                 book.haveBuy = haveBuy;
                 listAll.push(book);
             }
-            return appman.response.apiSuccess(res, listAll);
+            return appman.response.apiSuccess(res, { data: listAll, count: listBooks.count });
         } catch (error) {
             return appman.response.systemError(res, error)
         }
