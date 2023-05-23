@@ -107,7 +107,8 @@ module.exports = {
                     "address",
                     "numberPhone",
                     "quantity",
-                    "fullName"
+                    "fullName",
+                    "createdAt"
                 ],
                 include: [
                     {
