@@ -334,6 +334,7 @@ module.exports = {
                                 model: appman.db.Users,
                                 as: 'user',
                                 attributes: [
+                                    "id",
                                     "userName",
                                     "email",
                                 ],
